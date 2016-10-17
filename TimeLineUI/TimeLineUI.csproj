@@ -54,6 +54,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Form1.resx">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -75,6 +78,23 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Resources\application-exit-4.png" />
+    <Content Include="Resources\arrow-left-2.png" />
+    <Content Include="Resources\arrow-left-double-2.png" />
+    <Content Include="Resources\arrow-right-2.png" />
+    <Content Include="Resources\arrow-right-3.png" />
+    <Content Include="Resources\arrow-right-double-2.png" />
+    <Content Include="Resources\arrow-rotate-clockwise.png" />
+    <Content Include="Resources\go-first-view.png" />
+    <Content Include="Resources\go-last-view.png" />
+    <Content Include="Resources\kgpg.png" />
+    <Content Include="Resources\layer-novisible.png" />
+    <Content Include="Resources\media-playback-stop.png" />
+    <Content Include="Resources\media-skip-backward-2.png" />
+    <Content Include="Resources\media-skip-forward-2.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
