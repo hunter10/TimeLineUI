@@ -54,6 +54,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TimeLineObject.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
@@ -88,7 +89,9 @@
     <Content Include="Resources\arrow-right-3.png" />
     <Content Include="Resources\arrow-right-double-2.png" />
     <Content Include="Resources\arrow-rotate-clockwise.png" />
+    <Content Include="Resources\go-first-2.png" />
     <Content Include="Resources\go-first-view.png" />
+    <Content Include="Resources\go-last-2.png" />
     <Content Include="Resources\go-last-view.png" />
     <Content Include="Resources\kgpg.png" />
     <Content Include="Resources\layer-novisible.png" />
