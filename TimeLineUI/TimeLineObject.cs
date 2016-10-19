@@ -15,7 +15,7 @@ namespace TimeLineUI
         BODY
     }
 
-    class TimeLineObject
+    class TimeLineObject 
     {
         public String Name { get; set; }
         public bool Lock { get; set; }
@@ -26,10 +26,16 @@ namespace TimeLineUI
         public Image SIcon { get; set; }
         public Image EIcon { get; set; }
 
+        private Font drawFont = new Font("Arial", 8);
+        //private SolidBrush drawBrush = SolidBrush(Color.Black);
+        //private StringFormat drawFormat = StringFormat();
+
+        
+
         public TIMEOBJTYPE currType { get; set; }
 
-        int nStartX = 5;
-        int nStartY = 5;
+        //int nStartX = 5;
+        //int nStartY = 5;
         int nSX_SY_GapOffset = 5;
 
         public TimeLineObject(Point point1, Point point2)
@@ -49,17 +55,19 @@ namespace TimeLineUI
         
         public void DrawIcon(Graphics g, TIMEOBJTYPE type)
         {
-            //Point? tempP;
             if (type == TIMEOBJTYPE.START)
             {
                 DrawIcon(g, SIcon, SPos);
-                //tempP = SPos;
             }
             else
             {
                 DrawIcon(g, EIcon, EPos);
-                //tempP = EPos;
             }
+        }
+
+        public void DrawName(Graphics g)
+        {
+            g.DrawString(Name, drawFont, Brushes.Black, new Point(EPos.X + EIcon.Width + nSX_SY_GapOffset, EPos.Y - 1));
         }
 
         public TimeLineObject CheckIconPos(Point p)
