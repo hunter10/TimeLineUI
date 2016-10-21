@@ -15,6 +15,13 @@ namespace TimeLineUI
         BODY
     }
 
+    public enum ANITYPE
+    {
+        NONE,
+        STOP_AT_END,
+        REPLAY_AT_END
+    }
+
     class TimeLineObject 
     {
         public String Name { get; set; }
@@ -26,17 +33,10 @@ namespace TimeLineUI
         public Image SIcon { get; set; }
         public Image EIcon { get; set; }
 
-        private Font drawFont = new Font("Arial", 8);
-        //private SolidBrush drawBrush = SolidBrush(Color.Black);
-        //private StringFormat drawFormat = StringFormat();
+        public TIMEOBJTYPE objType { get; set; }
+        public ANITYPE aniType { get; set; }
 
-        
-
-        public TIMEOBJTYPE currType { get; set; }
-
-        //int nStartX = 5;
-        //int nStartY = 5;
-        int nSX_SY_GapOffset = 5;
+        int nSX_SY_Gap = 5;
 
         public TimeLineObject(Point point1, Point point2)
         {
@@ -44,7 +44,9 @@ namespace TimeLineUI
             SPos = new Point(point1.X, point1.Y);
 
             EIcon = Image.FromFile(@"..\..\Resources\go-last-2.png");
-            EPos = new Point(SIcon.Width + nSX_SY_GapOffset, point2.Y);
+            EPos = new Point(SIcon.Width + nSX_SY_Gap, point2.Y);
+
+            aniType = ANITYPE.STOP_AT_END;
         }
 
         public void DrawIcon(Graphics g, Image image, Point point)
@@ -67,7 +69,7 @@ namespace TimeLineUI
 
         public void DrawName(Graphics g)
         {
-            g.DrawString(Name, drawFont, Brushes.Black, new Point(EPos.X + EIcon.Width + nSX_SY_GapOffset, EPos.Y - 1));
+            g.DrawString(Name, new Font("Arial", 8), Brushes.Black, new Point(EPos.X + EIcon.Width + nSX_SY_Gap, EPos.Y - 1));
         }
 
         public TimeLineObject CheckIconPos(Point p)
@@ -77,7 +79,7 @@ namespace TimeLineUI
                (p.Y > SPos.Y) &&
                (p.Y < SPos.Y + SIcon.Height))
             {
-                currType = TIMEOBJTYPE.START;
+                objType = TIMEOBJTYPE.START;
                 return this;
             }
 
@@ -86,7 +88,7 @@ namespace TimeLineUI
                (p.Y > EPos.Y) &&
                (p.Y < EPos.Y + EIcon.Height))
             {
-                currType = TIMEOBJTYPE.END;
+                objType = TIMEOBJTYPE.END;
                 return this;
             }
 
@@ -95,11 +97,11 @@ namespace TimeLineUI
                 (p.Y > SPos.Y) &&
                 (p.Y < SPos.Y + SIcon.Height))
             {
-                currType = TIMEOBJTYPE.BODY;
+                objType = TIMEOBJTYPE.BODY;
                 return this;
             }
 
-            currType = TIMEOBJTYPE.NONE;
+            objType = TIMEOBJTYPE.NONE;
             return null;
         }
 

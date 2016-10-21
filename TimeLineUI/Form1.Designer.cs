@@ -43,7 +43,6 @@
             this.btnGoReverse = new System.Windows.Forms.Button();
             this.picBox_Lock = new System.Windows.Forms.PictureBox();
             this.picBox_View = new System.Windows.Forms.PictureBox();
-            this.trackBar1 = new System.Windows.Forms.TrackBar();
             this.panel_TimeEdit = new System.Windows.Forms.Panel();
             this.picBox_TimeEdit = new System.Windows.Forms.PictureBox();
             this.panel2 = new System.Windows.Forms.Panel();
@@ -55,7 +54,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.dGrid_TimeLineObj)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picBox_Lock)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picBox_View)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.panel_TimeEdit.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picBox_TimeEdit)).BeginInit();
             this.panel2.SuspendLayout();
@@ -72,12 +70,12 @@
             this.name,
             this.Itemlock,
             this.itemView});
-            this.dGrid_TimeLineObj.Location = new System.Drawing.Point(0, 38);
+            this.dGrid_TimeLineObj.Location = new System.Drawing.Point(0, 36);
             this.dGrid_TimeLineObj.MultiSelect = false;
             this.dGrid_TimeLineObj.Name = "dGrid_TimeLineObj";
             this.dGrid_TimeLineObj.RowHeadersVisible = false;
             this.dGrid_TimeLineObj.RowTemplate.Height = 23;
-            this.dGrid_TimeLineObj.Size = new System.Drawing.Size(353, 163);
+            this.dGrid_TimeLineObj.Size = new System.Drawing.Size(353, 202);
             this.dGrid_TimeLineObj.TabIndex = 0;
             this.dGrid_TimeLineObj.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dGrid_TimeLineObj_CellValueChanged);
             this.dGrid_TimeLineObj.Scroll += new System.Windows.Forms.ScrollEventHandler(this.dGrid_TimeLineObj_Scroll);
@@ -191,16 +189,6 @@
             this.picBox_View.TabIndex = 9;
             this.picBox_View.TabStop = false;
             // 
-            // trackBar1
-            // 
-            this.trackBar1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.trackBar1.Cursor = System.Windows.Forms.Cursors.Default;
-            this.trackBar1.Location = new System.Drawing.Point(387, 5);
-            this.trackBar1.Name = "trackBar1";
-            this.trackBar1.Size = new System.Drawing.Size(459, 45);
-            this.trackBar1.TabIndex = 10;
-            // 
             // panel_TimeEdit
             // 
             this.panel_TimeEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -208,19 +196,20 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel_TimeEdit.AutoScroll = true;
             this.panel_TimeEdit.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.panel_TimeEdit.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel_TimeEdit.Controls.Add(this.picBox_TimeEdit);
-            this.panel_TimeEdit.Location = new System.Drawing.Point(387, 38);
+            this.panel_TimeEdit.Location = new System.Drawing.Point(401, 5);
             this.panel_TimeEdit.Name = "panel_TimeEdit";
-            this.panel_TimeEdit.Size = new System.Drawing.Size(459, 163);
+            this.panel_TimeEdit.Size = new System.Drawing.Size(450, 233);
             this.panel_TimeEdit.TabIndex = 11;
             this.panel_TimeEdit.Scroll += new System.Windows.Forms.ScrollEventHandler(this.panel_TimeEdit_Scroll);
             // 
             // picBox_TimeEdit
             // 
             this.picBox_TimeEdit.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.picBox_TimeEdit.Location = new System.Drawing.Point(3, 3);
+            this.picBox_TimeEdit.Location = new System.Drawing.Point(0, 0);
             this.picBox_TimeEdit.Name = "picBox_TimeEdit";
-            this.picBox_TimeEdit.Size = new System.Drawing.Size(244, 87);
+            this.picBox_TimeEdit.Size = new System.Drawing.Size(414, 230);
             this.picBox_TimeEdit.TabIndex = 0;
             this.picBox_TimeEdit.TabStop = false;
             // 
@@ -242,9 +231,9 @@
             // 
             // btnObjAdd
             // 
-            this.btnObjAdd.Location = new System.Drawing.Point(536, 5);
+            this.btnObjAdd.Location = new System.Drawing.Point(359, 90);
             this.btnObjAdd.Name = "btnObjAdd";
-            this.btnObjAdd.Size = new System.Drawing.Size(75, 23);
+            this.btnObjAdd.Size = new System.Drawing.Size(36, 62);
             this.btnObjAdd.TabIndex = 13;
             this.btnObjAdd.Text = "Object Add";
             this.btnObjAdd.UseVisualStyleBackColor = true;
@@ -284,11 +273,10 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(845, 201);
+            this.ClientSize = new System.Drawing.Size(863, 239);
             this.Controls.Add(this.btnObjAdd);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel_TimeEdit);
-            this.Controls.Add(this.trackBar1);
             this.Controls.Add(this.dGrid_TimeLineObj);
             this.Name = "MainForm";
             this.Text = "TimeLine";
@@ -296,13 +284,11 @@
             ((System.ComponentModel.ISupportInitialize)(this.dGrid_TimeLineObj)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picBox_Lock)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picBox_View)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
             this.panel_TimeEdit.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.picBox_TimeEdit)).EndInit();
             this.panel2.ResumeLayout(false);
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -318,7 +304,6 @@
         private System.Windows.Forms.Button btnGoReverse;
         private System.Windows.Forms.PictureBox picBox_Lock;
         private System.Windows.Forms.PictureBox picBox_View;
-        private System.Windows.Forms.TrackBar trackBar1;
         private System.Windows.Forms.Panel panel_TimeEdit;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Button btnObjAdd;
