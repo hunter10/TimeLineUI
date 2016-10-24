@@ -36,15 +36,27 @@ namespace TimeLineUI
         public TIMEOBJTYPE objType { get; set; }
         public ANITYPE aniType { get; set; }
 
-        int nSX_SY_Gap = 5;
+        private int m_tickWidth { get; set; }
+        private int nameGap = 5; // 끝점에서 이름까지 갭
 
-        public TimeLineObject(Point point1, Point point2)
+        public int STick { get; set; }                      // 시작 포인트 틱
+        public int ETick { get; set; }                      // 끝 포인트 틱
+
+        // 끝점 시작점은 아이콘 폭만큼 뺀 차이를 더해야 함
+        public int ConvEndPosStart(int EndPosX, int TickWidth)
         {
+            return EndPosX + (TickWidth - EIcon.Width);
+        }
+
+        public TimeLineObject(Point point1, Point point2, int tickWidth)
+        {
+            m_tickWidth = tickWidth;
+
             SIcon = Image.FromFile(@"..\..\Resources\go-first-2.png");
             SPos = new Point(point1.X, point1.Y);
 
             EIcon = Image.FromFile(@"..\..\Resources\go-last-2.png");
-            EPos = new Point(SIcon.Width + nSX_SY_Gap, point2.Y);
+            EPos = new Point((point1.X + (m_tickWidth*10)) - EIcon.Width, point2.Y);
 
             aniType = ANITYPE.STOP_AT_END;
         }
@@ -69,7 +81,7 @@ namespace TimeLineUI
 
         public void DrawName(Graphics g)
         {
-            g.DrawString(Name, new Font("Arial", 8), Brushes.Black, new Point(EPos.X + EIcon.Width + nSX_SY_Gap, EPos.Y - 1));
+            g.DrawString(Name, new Font("Arial", 8), Brushes.Black, new Point(EPos.X + EIcon.Width + nameGap, EPos.Y - 1));
         }
 
         public TimeLineObject CheckIconPos(Point p)
@@ -104,6 +116,11 @@ namespace TimeLineUI
             objType = TIMEOBJTYPE.NONE;
             return null;
         }
+
+        //public TimeLineObject Conv(Point p)
+        //{
+            
+        //}
 
         public void DrawFrameBox(Graphics g)
         {

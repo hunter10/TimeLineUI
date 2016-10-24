@@ -51,6 +51,8 @@
             this.deleteGroupToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stopAnimationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.replayAnimationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.panel_Ruler = new System.Windows.Forms.Panel();
+            this.picBox_Ruler = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.dGrid_TimeLineObj)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picBox_Lock)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picBox_View)).BeginInit();
@@ -58,6 +60,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.picBox_TimeEdit)).BeginInit();
             this.panel2.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
+            this.panel_Ruler.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picBox_Ruler)).BeginInit();
             this.SuspendLayout();
             // 
             // dGrid_TimeLineObj
@@ -70,12 +74,12 @@
             this.name,
             this.Itemlock,
             this.itemView});
-            this.dGrid_TimeLineObj.Location = new System.Drawing.Point(0, 36);
+            this.dGrid_TimeLineObj.Location = new System.Drawing.Point(0, 58);
             this.dGrid_TimeLineObj.MultiSelect = false;
             this.dGrid_TimeLineObj.Name = "dGrid_TimeLineObj";
             this.dGrid_TimeLineObj.RowHeadersVisible = false;
             this.dGrid_TimeLineObj.RowTemplate.Height = 23;
-            this.dGrid_TimeLineObj.Size = new System.Drawing.Size(353, 202);
+            this.dGrid_TimeLineObj.Size = new System.Drawing.Size(353, 180);
             this.dGrid_TimeLineObj.TabIndex = 0;
             this.dGrid_TimeLineObj.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dGrid_TimeLineObj_CellValueChanged);
             this.dGrid_TimeLineObj.Scroll += new System.Windows.Forms.ScrollEventHandler(this.dGrid_TimeLineObj_Scroll);
@@ -198,9 +202,9 @@
             this.panel_TimeEdit.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.panel_TimeEdit.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel_TimeEdit.Controls.Add(this.picBox_TimeEdit);
-            this.panel_TimeEdit.Location = new System.Drawing.Point(401, 5);
+            this.panel_TimeEdit.Location = new System.Drawing.Point(401, 50);
             this.panel_TimeEdit.Name = "panel_TimeEdit";
-            this.panel_TimeEdit.Size = new System.Drawing.Size(450, 233);
+            this.panel_TimeEdit.Size = new System.Drawing.Size(469, 188);
             this.panel_TimeEdit.TabIndex = 11;
             this.panel_TimeEdit.Scroll += new System.Windows.Forms.ScrollEventHandler(this.panel_TimeEdit_Scroll);
             // 
@@ -209,7 +213,7 @@
             this.picBox_TimeEdit.BackColor = System.Drawing.SystemColors.ControlDark;
             this.picBox_TimeEdit.Location = new System.Drawing.Point(0, 0);
             this.picBox_TimeEdit.Name = "picBox_TimeEdit";
-            this.picBox_TimeEdit.Size = new System.Drawing.Size(414, 230);
+            this.picBox_TimeEdit.Size = new System.Drawing.Size(414, 145);
             this.picBox_TimeEdit.TabIndex = 0;
             this.picBox_TimeEdit.TabStop = false;
             // 
@@ -224,7 +228,7 @@
             this.panel2.Controls.Add(this.btnOneStepNext);
             this.panel2.Controls.Add(this.btnGoReverse);
             this.panel2.Controls.Add(this.btnGoLast);
-            this.panel2.Location = new System.Drawing.Point(0, 5);
+            this.panel2.Location = new System.Drawing.Point(0, 25);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(345, 27);
             this.panel2.TabIndex = 12;
@@ -269,11 +273,35 @@
             this.replayAnimationToolStripMenuItem.Text = "Replay Animation";
             this.replayAnimationToolStripMenuItem.Click += new System.EventHandler(this.replayAnimationToolStripMenuItem_Click);
             // 
+            // panel_Ruler
+            // 
+            this.panel_Ruler.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panel_Ruler.AutoScroll = true;
+            this.panel_Ruler.BackColor = System.Drawing.SystemColors.ActiveBorder;
+            this.panel_Ruler.Controls.Add(this.picBox_Ruler);
+            this.panel_Ruler.ForeColor = System.Drawing.SystemColors.AppWorkspace;
+            this.panel_Ruler.Location = new System.Drawing.Point(402, 5);
+            this.panel_Ruler.Name = "panel_Ruler";
+            this.panel_Ruler.Size = new System.Drawing.Size(446, 45);
+            this.panel_Ruler.TabIndex = 14;
+            // 
+            // picBox_Ruler
+            // 
+            this.picBox_Ruler.BackColor = System.Drawing.SystemColors.ScrollBar;
+            this.picBox_Ruler.Location = new System.Drawing.Point(0, 0);
+            this.picBox_Ruler.Name = "picBox_Ruler";
+            this.picBox_Ruler.Size = new System.Drawing.Size(414, 35);
+            this.picBox_Ruler.TabIndex = 0;
+            this.picBox_Ruler.TabStop = false;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(863, 239);
+            this.ClientSize = new System.Drawing.Size(893, 239);
+            this.Controls.Add(this.panel_Ruler);
             this.Controls.Add(this.btnObjAdd);
             this.Controls.Add(this.panel2);
             this.Controls.Add(this.panel_TimeEdit);
@@ -288,6 +316,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.picBox_TimeEdit)).EndInit();
             this.panel2.ResumeLayout(false);
             this.contextMenuStrip1.ResumeLayout(false);
+            this.panel_Ruler.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.picBox_Ruler)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -315,6 +345,8 @@
         private System.Windows.Forms.ToolStripMenuItem deleteGroupToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem stopAnimationToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem replayAnimationToolStripMenuItem;
+        private System.Windows.Forms.Panel panel_Ruler;
+        private System.Windows.Forms.PictureBox picBox_Ruler;
     }
 }
 
