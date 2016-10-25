@@ -30,9 +30,9 @@ namespace TimeLineUI
         const int timePerFrame = 100;           // 프레임당 시간 (0.1초)
         const int tickPerFrame = 2;             // 프레임당 틱갯수
         const int framePerSec = 5;              // 초당 5프레임
-        const int tickWidth = 5;                // 이 간격을 0.1초로 계산
-        const int totalTime = 10;               // 전체 작업시간(초)
-        const int centerOffsetIdx = 8;         // 센터를 표시하기 위한 오른쪽에 떨어진 간격 (계산해야함)
+        const int tickWidth = 20;               // 이 간격을 0.1초로 계산
+        const int totalTime = 3;                // 전체 작업시간(초)
+        
 
         // 눈금용 데이터들
         const int boxGapWidth = 15;             // 픽쳐박스 왼쪽에서 시작위치까지의 간격 (눈금자, 타임에디터 공용)
@@ -48,6 +48,7 @@ namespace TimeLineUI
         int currOffsetIdx = 0;                  // 시작위치에서 얼마큼 떨어져 있는지 
         //int minOffsetIdxWithCenter = 0;         // 센터 적용된 최소 오프셋값
         int maxOffsetIdxWithCenter = 0;         // 센터 적용된 최대 오프셋값 
+        int centerOffsetIdx = 0;                // 센터를 가기 위한 판넬 오른쪽에서 떨어진 간격 (계산해야함)
 
         int dGrid_TimeLineObjHeight = 0;
         int picBox_TimeEdit_MinHeight = 0;      // 타임에디터 최소 높이
@@ -77,14 +78,27 @@ namespace TimeLineUI
             contextMenu1.MenuItems.Add(new MenuItem().Text = "Delete Group");
             contextMenu1.MenuItems.Add(new MenuItem().Text = "Stop Animation");
             contextMenu1.MenuItems.Add(new MenuItem().Text = "Replay Animation");
-
             contextMenu1.MenuItems[0].Click += new EventHandler(deleteGroupToolStripMenuItem_Click);
             contextMenu1.MenuItems[1].Click += new EventHandler(stopAnimationToolStripMenuItem_Click);
             contextMenu1.MenuItems[2].Click += new EventHandler(replayAnimationToolStripMenuItem_Click);
 
             dGrid_TimeLineObj.MouseClick += new MouseEventHandler(dGrid_TimeLineObj_MouseClick);
-            
 
+            picBox_Ruler.Height = panel_Ruler.Height;
+            picBox_Ruler.Paint += new PaintEventHandler(picBox_Ruler_Paint);
+            picBox_Ruler.MouseDown += new MouseEventHandler(picBox_Ruler_MouseDown);
+
+            // 스크롤바 없애기
+            panel_Ruler.AutoScroll = false;
+            panel_Ruler.HorizontalScroll.Enabled = false;
+            panel_Ruler.HorizontalScroll.Visible = false;
+            panel_Ruler.HorizontalScroll.Maximum = 0;
+            panel_Ruler.VerticalScroll.Enabled = false;
+            panel_Ruler.VerticalScroll.Visible = false;
+            panel_Ruler.VerticalScroll.Maximum = 0;
+            panel_Ruler.AutoScroll = true;
+
+            // 타임 에디터
             picBox_TimeEdit.Height = panel_TimeEdit.Height;
             picBox_TimeEdit_MinHeight = picBox_TimeEdit.Height;
             picBox_TimeEdit.Paint += new PaintEventHandler(picBox_TimeEdit_Paint);
@@ -99,26 +113,16 @@ namespace TimeLineUI
             panel_TimeEdit.VerticalScroll.SmallChange = 23;     // 양 사이드의 화살표 누를때
             panel_TimeEdit.VerticalScroll.LargeChange = 23;     // 썸네일 밖에 영역을 누를때
 
-
-            picBox_Ruler.Height = panel_Ruler.Height;
-            picBox_Ruler.Paint += new PaintEventHandler(picBox_Ruler_Paint);
-            picBox_Ruler.MouseDown += new MouseEventHandler(picBox_Ruler_MouseDown);
-
-            // 스크롤바 없애기
-            panel_Ruler.AutoScroll = false;
-            panel_Ruler.HorizontalScroll.Enabled = false;
-            panel_Ruler.HorizontalScroll.Visible = false;
-            panel_Ruler.HorizontalScroll.Maximum = 0;
-
-            panel_Ruler.VerticalScroll.Enabled = false;
-            panel_Ruler.VerticalScroll.Visible = false;
-            panel_Ruler.VerticalScroll.Maximum = 0;
-            panel_Ruler.AutoScroll = true;
-
-            //Console.WriteLine("panel_Ruler W:{0}, panel_TimeEdit W:{1}, VerticalScrollBarWidth:{2}", panel_TimeEdit.Width, panel_Ruler.Width, SystemInformation.VerticalScrollBarWidth);
-
             // 타임에디터 판넬에 스크롤바가 발생하므로 룰러 클릭영역의 정확한 보정을 위해서 스크롤바 폭만큼 더해줘야 함.
             panel_TimeEdit.Width = panel_Ruler.Width + SystemInformation.VerticalScrollBarWidth + 2;
+
+            btnGoFirst.Click += new EventHandler(btnGoFirst_Click);
+            btnOneStepPrev.Click += new EventHandler(btnOneStepPrev_Click);
+            btnPlayStop.Click += new EventHandler(btnPlayStop_Click);
+            btnPlay.Click += new EventHandler(btnPlay_Click);
+            btnOneStepNext.Click += new EventHandler(btnOneStepNext_Click);
+            btnGoLast.Click += new EventHandler(btnGoLast_Click);
+            btnGoReverse.Click += new EventHandler(btnGoReverse_Click);
         }
 
         private void TimeInit()
@@ -142,10 +146,14 @@ namespace TimeLineUI
             picBox_Ruler.Width = picBox_TimeEdit.Width;
 
             // 수동 스크롤된후 자동으로 화면이동시 중앙으로 비슷하게 이동하기 위해
-            int tickCountPerPanel = ((panel_TimeEdit.Width - (boxGapWidth * 2)) / tickWidth) - centerOffsetIdx;   // 한 화면당 나타낼 틱갯수 
+            //int tickCountPerPanel = ((panel_TimeEdit.Width - (boxGapWidth * 2)) / tickWidth);   // 한 화면당 나타낼 틱갯수 
+            int tickCountPerPanel = (panel_TimeEdit.Width - boxGapWidth) / tickWidth;   // 한 화면당 나타낼 틱갯수 
 
             // 판넬당 표시되는 최대 인덱스 값
             maxIdxPerPanel = tickCountPerPanel - 1;
+
+            // 판넬의 중앙 인덱스
+            centerOffsetIdx = maxIdxPerPanel / 2;
 
             // 최대오프셋값 = (전체 인덱스 - 판넬당 최대인덱스) 
             int maxOffsetZeroStartIdx = maxIdx - maxIdxPerPanel;
@@ -157,8 +165,9 @@ namespace TimeLineUI
             panel2.HorizontalScroll.SmallChange = tickWidth;    // 양 사이드의 화살표 누를때 움직일 값
             panel2.HorizontalScroll.LargeChange = tickWidth;    // 썸네일 밖에 영역을 누를때 움직일 값
 
+            // 화면중앙부터 스크롤 되게 하려는 경계값
             currOffsetIdx = 0;
-
+            
             HorizontalTickInit();
         }
 
@@ -507,14 +516,23 @@ namespace TimeLineUI
             nowTimeLine_picboxRuler.SPos = new Point(nowTimeLine_picboxRuler.SPos.X + tickWidth, nowTimeLine_picboxRuler.SPos.Y);
             nowTimeLine_picboxRuler.EPos = new Point(nowTimeLine_picboxRuler.EPos.X + tickWidth, nowTimeLine_picboxRuler.EPos.Y);
 
-            if (currIdx >= (maxIdxPerPanel + currOffsetIdx))
+            Console.WriteLine("0 btnOneStepNext_Click currIdx {0}, maxIdx {1}, maxIdxPerPanel {2}, currOffsetIdx {3}, centerOffsetIdx:{4}, maxOffsetIdxWithCenter:{5}", currIdx, maxIdx, maxIdxPerPanel, currOffsetIdx, centerOffsetIdx, maxOffsetIdxWithCenter);
+
+            //if (currIdx >= (maxIdxPerPanel + currOffsetIdx))
+            if (currIdx >= centerOffsetIdx)
             {
-                currOffsetIdx += 1;
-                int x = currOffsetIdx * tickWidth;
-                int y = panel_TimeEdit.AutoScrollPosition.Y;
-                panel_TimeEdit.AutoScrollPosition = new Point(x, y);
-                panel_Ruler.AutoScrollPosition = new Point(x, y);
+                //if (currOffsetIdx < maxIdxPerPanel) // 현재오프셋값이 화면당 최대값에 도달하면 더이상 스크롤 안하기
+                {
+                    currOffsetIdx += 1;
+                    int x = currOffsetIdx * tickWidth;
+                    int y = panel_TimeEdit.AutoScrollPosition.Y;
+                    panel_TimeEdit.AutoScrollPosition = new Point(x, y);
+                    panel_Ruler.AutoScrollPosition = new Point(x, y);
+                    Console.WriteLine("스크롤 된후 currIdx {0} >= centerOffsetIdx {1}", currIdx, centerOffsetIdx);
+                }
             }
+
+            Console.WriteLine("1 btnOneStepNext_Click currIdx {0}, maxIdx {1}, maxIdxPerPanel {2}, currOffsetIdx {3}", currIdx, maxIdx, maxIdxPerPanel, currOffsetIdx);
 
             picBox_TimeEdit.Invalidate();
             picBox_Ruler.Invalidate();
@@ -596,14 +614,12 @@ namespace TimeLineUI
             {
                 int moveIndex = panel_TimeEdit.VerticalScroll.Value / dGrid_TimeLineObj.RowTemplate.Height;
                 Console.WriteLine("0 panel_TimeEdit AutoScroll:{0}, VV:{1}, Index:{2}", panel_TimeEdit.AutoScrollPosition, panel_TimeEdit.VerticalScroll.Value, moveIndex);
-
                 dGrid_TimeLineObj.FirstDisplayedScrollingRowIndex = moveIndex;
             }
 
             if (e.ScrollOrientation == ScrollOrientation.HorizontalScroll)
             {
                 currOffsetIdx = panel_TimeEdit.HorizontalScroll.Value / tickWidth;
-
                 panel_Ruler.AutoScrollPosition = new Point(panel_TimeEdit.HorizontalScroll.Value, panel_TimeEdit.VerticalScroll.Value);
             }
         }
@@ -841,7 +857,5 @@ namespace TimeLineUI
             // 맨 마지막 요소 선택안할걸로 처리
             dGrid_TimeLineObj.Rows[dGrid_TimeLineObj.RowCount - 1].Selected = false;
         }
-
-        
     }
 }
