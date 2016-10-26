@@ -29,6 +29,11 @@ namespace TimeLineUI_Test
         {
 
         }
+
+        private void timeLineUI1_Resize(object sender, EventArgs e)
+        {
+            
+        }
     }
 }
 

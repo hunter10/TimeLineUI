@@ -43,12 +43,12 @@ namespace TimeLineUI
         const int fullFrameHeight = 12;         // 1 프레임당 눈금길이
 
         int maxIdx = 0;                         // 최대 틱 인덱스
-        int maxIdxPerPanel = 0;                // 한 판넬에 표시하는 최대 틱 인덱스
+        int maxIdxPerPanel = 0;                 // 한 판넬에 표시하는 최대 틱 인덱스
         int currIdx = 0;                        // 현재 틱 위치 인덱스
         int currOffsetIdx = 0;                  // 시작위치에서 얼마큼 떨어져 있는지 
-        //int minOffsetIdxWithCenter = 0;         // 센터 적용된 최소 오프셋값
-        int maxOffsetIdxWithCenter = 0;         // 센터 적용된 최대 오프셋값 
-        int centerOffsetIdx = 0;                // 센터를 가기 위한 판넬 오른쪽에서 떨어진 간격 (계산해야함)
+        int maxOffsetIdx_FromZero = 0;          // 시작위치에서부터의 최대 오프셋값
+        int offsetStartIdx_FromZero = 0;   // 스크롤이 시작되기 위한 틱 시작값(계산해야함)
+        int offsetStart_FromLast = 0;   // 스크롤이 시작되기 위한 틱 시작값(계산해야함)
 
         int dGrid_TimeLineObjHeight = 0;
         int picBox_TimeEdit_MinHeight = 0;      // 타임에디터 최소 높이
@@ -147,21 +147,21 @@ namespace TimeLineUI
             picBox_TimeEdit.Width = (boxGapWidth * 2) + (maxIdx * tickWidth);
             picBox_Ruler.Width = picBox_TimeEdit.Width;
 
-            // 수동 스크롤된후 자동으로 화면이동시 중앙으로 비슷하게 이동하기 위해
             int calWidth = panel_Ruler.Width - boxGapWidth;         // 타임에디터 픽쳐박스의 세로스크롤바의 폭이 빠졌는지 체크
             int tickCountPerPanel = (calWidth / tickWidth) + 1;     // 한 화면당 나타낼 틱갯수 (경계조건때문에 + 1)
 
             // 판넬당 표시되는 최대 인덱스 값
             maxIdxPerPanel = tickCountPerPanel - 1;
 
-            // 판넬의 중앙 인덱스
-            centerOffsetIdx = maxIdxPerPanel / 2;
+            // 최소 시작 인덱스 ( 임의의 값으로 세팅할수 있음 하지만 될수있는한 안하는게 좋음. )
+            offsetStartIdx_FromZero = (maxIdxPerPanel / 2);// + 10;         // 보기 좋은 중앙 보정값( +2 )
+            offsetStart_FromLast = maxIdx - offsetStartIdx_FromZero;
 
-            // 최대오프셋값 = (전체 인덱스 - 판넬당 최대인덱스) 
-            int maxOffsetZeroStartIdx = maxIdx - maxIdxPerPanel;
+            // 최대 오프셋값 = (전체 인덱스 - 판넬당 최대인덱스) 
+            maxOffsetIdx_FromZero = maxIdx - maxIdxPerPanel;
 
             // 센터 적용된 최대오프셋값 = 최대오프셋값 - 오른쪽에서 떨어질 간격
-            maxOffsetIdxWithCenter = maxOffsetZeroStartIdx - centerOffsetIdx;
+            //maxOffsetIdxWithCenter = maxOffsetZeroStartIdx - centerOffsetIdx;
             //minOffsetIdxWithCenter = 0;
 
             //panel2.HorizontalScroll.SmallChange = tickWidth;    // 양 사이드의 화살표 누를때 움직일 값
@@ -328,8 +328,7 @@ namespace TimeLineUI
 
             // 해당 틱으로 이동과 스크롤처리
             MoveToTickIdxAndAutoScroll(currIdx);
-
-
+            
             picBox_TimeEdit.Invalidate();
             picBox_Ruler.Invalidate();
         }
@@ -360,7 +359,7 @@ namespace TimeLineUI
                     selectedTimeLineObj.ETick = convIdx;
                 }
                 // 몸통을 잡고 움직이는 것는 클릭위치와 끝점간의 계산때문에 (나누기 연산의 오차)
-                // 틱 간격이 작을때 안맞을수 있음.
+                // 아이폰 크기가 틱 간격보다 작을때 안맞을수 있음.
                 // 몸통을 잡고 대략 움직이고 끝점으로 정확히 맞추는걸 추천
                 else // 몸통 움직이기
                 {
@@ -451,6 +450,9 @@ namespace TimeLineUI
 
         private void btnGoFirst_Click(object sender, EventArgs e)
         {
+            currIdx = 0;
+            currOffsetIdx = 0;
+
             nowTimeLine_picboxTimeEdit.SPos = new Point(boxGapWidth, nowTimeLine_picboxTimeEdit.SPos.Y);
             nowTimeLine_picboxTimeEdit.EPos = new Point(boxGapWidth, nowTimeLine_picboxTimeEdit.EPos.Y);
 
@@ -476,21 +478,25 @@ namespace TimeLineUI
 
             nowTimeLine_picboxRuler.SPos = new Point(nowTimeLine_picboxRuler.SPos.X - tickWidth, nowTimeLine_picboxRuler.SPos.Y);
             nowTimeLine_picboxRuler.EPos = new Point(nowTimeLine_picboxRuler.EPos.X - tickWidth, nowTimeLine_picboxRuler.EPos.Y);
-
-            int offsetIdxZeroStart = currIdx - maxIdxPerPanel;
-            if (offsetIdxZeroStart < currOffsetIdx)
+            
+            // Max 영역을 넘어선 영역에서 작동시 - 우측에서부터 제로로 생각해야 함
+            if (currIdx < offsetStart_FromLast)
             {
                 currOffsetIdx -= 1;
-                if (currOffsetIdx <= 0)
+                if (currOffsetIdx <= 0) // 현재오프셋값이 최소값에 도달하면 더이상 스크롤 안하기
+                {
                     currOffsetIdx = 0;
+                }
 
                 int x = currOffsetIdx * tickWidth;
                 int y = panel_TimeEdit.AutoScrollPosition.Y;
                 panel_TimeEdit.AutoScrollPosition = new Point(x, y);
                 panel_Ruler.AutoScrollPosition = new Point(x, y);
 
-                //Console.WriteLine("     1 스크롤 발생! panel2.HorizontalScroll.Value:{0}", panel2.HorizontalScroll.Value);
+                //Console.WriteLine("스크롤 된후 currIdx {0} >= offsetStartIdx_FromZero {1} ScrollPos {2}", currIdx, offsetStartIdx_FromZero, panel_TimeEdit.AutoScrollPosition);
             }
+
+            //Console.WriteLine("prev 1 btnOneStepPrev_Click currIdx {0}, maxIdx {1}, maxIdxPerPanel {2}, currOffsetIdx {3}", currIdx, maxIdx, maxIdxPerPanel, currOffsetIdx);
 
             picBox_TimeEdit.Invalidate();
             picBox_Ruler.Invalidate();
@@ -518,23 +524,22 @@ namespace TimeLineUI
             nowTimeLine_picboxRuler.SPos = new Point(nowTimeLine_picboxRuler.SPos.X + tickWidth, nowTimeLine_picboxRuler.SPos.Y);
             nowTimeLine_picboxRuler.EPos = new Point(nowTimeLine_picboxRuler.EPos.X + tickWidth, nowTimeLine_picboxRuler.EPos.Y);
 
-            Console.WriteLine("0 btnOneStepNext_Click currIdx {0}, maxIdx {1}, maxIdxPerPanel {2}, currOffsetIdx {3}, centerOffsetIdx:{4}, maxOffsetIdxWithCenter:{5}", currIdx, maxIdx, maxIdxPerPanel, currOffsetIdx, centerOffsetIdx, maxOffsetIdxWithCenter);
+            //Console.WriteLine("Next 0 btnOneStepNext_Click currIdx {0}, maxIdx {1}, maxIdxPerPanel {2}, currOffsetIdx {3}, minOffsetZeroStartIdx:{4}, maxOffsetIdxWithCenter:{5}", currIdx, maxIdx, maxIdxPerPanel, currOffsetIdx, minOffsetZeroStartIdx, maxOffsetIdxWithCenter);
 
-            //if (currIdx >= (maxIdxPerPanel + currOffsetIdx))
-            if (currIdx >= centerOffsetIdx)
+            if (currIdx >= offsetStartIdx_FromZero)
             {
-                //if (currOffsetIdx < maxIdxPerPanel) // 현재오프셋값이 화면당 최대값에 도달하면 더이상 스크롤 안하기
+                if (currOffsetIdx < maxOffsetIdx_FromZero) // 현재오프셋값이 최대값에 도달하면 더이상 스크롤 안하기
                 {
                     currOffsetIdx += 1;
                     int x = currOffsetIdx * tickWidth;
                     int y = panel_TimeEdit.AutoScrollPosition.Y;
                     panel_TimeEdit.AutoScrollPosition = new Point(x, y);
                     panel_Ruler.AutoScrollPosition = new Point(x, y);
-                    Console.WriteLine("스크롤 된후 currIdx {0} >= centerOffsetIdx {1}", currIdx, centerOffsetIdx);
+                    Console.WriteLine("스크롤 된후 currIdx {0} >= offsetStartIdx_FromZero {1}, currOffsetIdx{2}, ScrollPos {2}", currIdx, offsetStartIdx_FromZero, currOffsetIdx, panel_TimeEdit.AutoScrollPosition);
                 }
             }
 
-            Console.WriteLine("1 btnOneStepNext_Click currIdx {0}, maxIdx {1}, maxIdxPerPanel {2}, currOffsetIdx {3}", currIdx, maxIdx, maxIdxPerPanel, currOffsetIdx);
+            //Console.WriteLine("Next 1 btnOneStepNext_Click currIdx {0}, maxIdx {1}, maxIdxPerPanel {2}, currOffsetIdx {3}", currIdx, maxIdx, maxIdxPerPanel, currOffsetIdx);
 
             picBox_TimeEdit.Invalidate();
             picBox_Ruler.Invalidate();
@@ -543,6 +548,7 @@ namespace TimeLineUI
         private void btnGoLast_Click(object sender, EventArgs e)
         {
             currIdx = maxIdx;
+            currOffsetIdx = maxOffsetIdx_FromZero;
 
             Point pos = ConvTickIdxToPoint(maxIdx, 0);
 
@@ -574,14 +580,17 @@ namespace TimeLineUI
             if (currIdx >= maxIdx)
                 timer.Stop();
 
-            if (currIdx >= (maxIdxPerPanel + currOffsetIdx))
+            if (currIdx >= offsetStartIdx_FromZero)
             {
-                // 자동 스크롤이 되어야 함.
-                currOffsetIdx += 1;
-                int x = currOffsetIdx * tickWidth;
-                int y = panel_TimeEdit.AutoScrollPosition.Y;
-                panel_TimeEdit.AutoScrollPosition = new Point(x, y);
-                panel_Ruler.AutoScrollPosition = new Point(x, y);
+                if (currOffsetIdx < maxOffsetIdx_FromZero) // 현재오프셋값이 최대값에 도달하면 더이상 스크롤 안하기
+                {
+                    // 자동 스크롤이 되어야 함.
+                    currOffsetIdx += 1;
+                    int x = currOffsetIdx * tickWidth;
+                    int y = panel_TimeEdit.AutoScrollPosition.Y;
+                    panel_TimeEdit.AutoScrollPosition = new Point(x, y);
+                    panel_Ruler.AutoScrollPosition = new Point(x, y);
+                }
             }
 
             nowTimeLine_picboxTimeEdit.SPos = new Point(nowTimeLine_picboxTimeEdit.SPos.X + tickWidth, nowTimeLine_picboxTimeEdit.SPos.Y);
@@ -655,16 +664,10 @@ namespace TimeLineUI
 
             if (e.Button == MouseButtons.Right)
             {
-                int a = 0;
-
                 // 컨텍스트 메뉴 호출을 위한 작업
                 if (selectedTimeLineObj != null)
                 {
-                    //if (selectedTimeLineObj.objType == TIMEOBJTYPE.END)
-                    {
-                        //contextMenuStrip1.Show(dGrid_TimeLineObj, e.Location);
-                        contextMenu1.Show(dGrid_TimeLineObj, e.Location);
-                    }
+                    contextMenu1.Show(dGrid_TimeLineObj, e.Location);
                 }
             }
         }
@@ -805,31 +808,29 @@ namespace TimeLineUI
         private void MoveToTickIdxAndAutoScroll(int clickIdx)
         {
             // 임의의 위치가 원점부터 얼만큼 떨어져있는지 (판넬당 틱 갯수)
-            int offsetIdxZeroStart = clickIdx - maxIdxPerPanel;
-
-            //Console.WriteLine("0 offsetIdxZeroStart {0} currOffsetIdx {1}, maxOffsetIdxWithCenter {2} minOffsetIdxWithCenter {3}", offsetIdxZeroStart, currOffsetIdx, maxOffsetIdxWithCenter, minOffsetIdxWithCenter);
-
-            // 어딘가 다른데를 클릭했다면
-            if (offsetIdxZeroStart != currOffsetIdx)
+            if (currIdx < offsetStartIdx_FromZero)
             {
-                if (offsetIdxZeroStart < 0) // 기준 위치 이하인덱스를 얻었다면
-                    currOffsetIdx = 0;
-                else if (offsetIdxZeroStart > maxOffsetIdxWithCenter)
-                    currOffsetIdx = maxOffsetIdxWithCenter;
-                else
-                    currOffsetIdx = offsetIdxZeroStart;
-
-                int x = currOffsetIdx * tickWidth;
-                int y = panel_TimeEdit.AutoScrollPosition.Y;
-                panel_TimeEdit.AutoScrollPosition = new Point(x, y);
-                panel_Ruler.AutoScrollPosition = new Point(x, y);
-
-                //Console.WriteLine("             1 스크롤 발생 clickTickIdx {0}, OffsetIdxZeroStart {1}, currOffsetIdx {2}", clickTickIdx, offsetIdxZeroStart, currOffsetIdx);
+                currOffsetIdx = 0;
             }
-
-            Console.WriteLine("1 OffsetIdxZeroStart {0} currOffsetIdx {1}", offsetIdxZeroStart, currOffsetIdx);
+            else if (currIdx >= (maxOffsetIdx_FromZero + offsetStartIdx_FromZero))
+            {
+                currOffsetIdx = maxOffsetIdx_FromZero;
+            }
+            else
+            {
+                currOffsetIdx = (currIdx + 1) - offsetStartIdx_FromZero;
+            }
+            
+            int x = currOffsetIdx * tickWidth;
+            int y = panel_TimeEdit.AutoScrollPosition.Y;
+            panel_TimeEdit.AutoScrollPosition = new Point(x, y);
+            panel_Ruler.AutoScrollPosition = new Point(x, y);
+            Console.WriteLine("스크롤 된후 currIdx {0} >= offsetStartIdx_FromZero {1}, currOffsetIdx{2}, ScrollPos {2}", currIdx, offsetStartIdx_FromZero, currOffsetIdx, panel_TimeEdit.AutoScrollPosition);
+            
+            Console.WriteLine("1 MoveToTickIdxAndAutoScroll maxIdx {0}, maxIdxPerPanel {1}, currOffsetIdx {2}, offsetStartIdx_FromZero:{3}", maxIdx, maxIdxPerPanel, currOffsetIdx, offsetStartIdx_FromZero);
         }
 
+        // 테스트용 임시 데이터 생성용
         private void picBox_View_Click(object sender, EventArgs e)
         {
             for (int i = 0; i < 1; i++)
@@ -860,6 +861,22 @@ namespace TimeLineUI
             dGrid_TimeLineObj.Rows[dGrid_TimeLineObj.RowCount - 1].Selected = false;
         }
 
-       
+        private void panel_Total_Resize(object sender, EventArgs e)
+        {
+            int calWidth = panel_Ruler.Width - boxGapWidth;         // 타임에디터 픽쳐박스의 세로스크롤바의 폭이 빠졌는지 체크
+            int tickCountPerPanel = (calWidth / tickWidth) + 1;     // 한 화면당 나타낼 틱갯수 (경계조건때문에 + 1)
+
+            // 판넬당 표시되는 최대 인덱스 값
+            maxIdxPerPanel = tickCountPerPanel - 1;
+
+            // 최소 시작 인덱스 ( 임의의 값으로 세팅할수 있음 하지만 될수있는한 안하는게 좋음. )
+            offsetStartIdx_FromZero = (maxIdxPerPanel / 2);// + 10;         // 보기 좋은 중앙 보정값( +2 )
+            offsetStart_FromLast = maxIdx - offsetStartIdx_FromZero;
+
+            // 최대 오프셋값 = (전체 인덱스 - 판넬당 최대인덱스) 
+            maxOffsetIdx_FromZero = maxIdx - maxIdxPerPanel;
+        }
     }
+
+
 }

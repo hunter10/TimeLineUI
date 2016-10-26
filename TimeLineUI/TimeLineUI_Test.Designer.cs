@@ -38,6 +38,7 @@
             this.timeLineUI1.Name = "timeLineUI1";
             this.timeLineUI1.Size = new System.Drawing.Size(777, 203);
             this.timeLineUI1.TabIndex = 0;
+            this.timeLineUI1.Resize += new System.EventHandler(this.timeLineUI1_Resize);
             // 
             // MainForm
             // 

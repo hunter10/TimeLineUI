@@ -268,6 +268,7 @@
             this.panel_Total.Name = "panel_Total";
             this.panel_Total.Size = new System.Drawing.Size(531, 164);
             this.panel_Total.TabIndex = 17;
+            this.panel_Total.Resize += new System.EventHandler(this.panel_Total_Resize);
             // 
             // panel_Left
             // 
