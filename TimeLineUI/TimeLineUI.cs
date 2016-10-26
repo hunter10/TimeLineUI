@@ -18,7 +18,7 @@ namespace TimeLineUI
 
         private TimeLine nowTimeLine_picboxRuler = null;        // 타임 세로선 (눈금자용)
         private TimeLine nowTimeLine_picboxTimeEdit = null;     // 타임 세로선 (타임에디터용)
-        private Timer timer = new System.Windows.Forms.Timer();
+        private Timer timer = new Timer();
 
         private ContextMenu contextMenu1;
 
@@ -31,7 +31,7 @@ namespace TimeLineUI
         const int tickPerFrame = 2;             // 프레임당 틱갯수
         const int framePerSec = 5;              // 초당 5프레임
         const int tickWidth = 20;               // 이 간격을 0.1초로 계산
-        const int totalTime = 3;                // 전체 작업시간(초)
+        const int totalTime = 5;                // 전체 작업시간(초)
         
 
         // 눈금용 데이터들
@@ -65,11 +65,15 @@ namespace TimeLineUI
             }
         }
 
+        private void TimeLineUI_Load(object sender, EventArgs e)
+        {
+            ControlInit();
+            TimeInit();
+        }
+
         public TimeLineUI()
         {
             InitializeComponent();
-            ControlInit();
-            TimeInit();
         }
 
         private void ControlInit()
@@ -133,9 +137,7 @@ namespace TimeLineUI
             timer.Interval = timePerFrame; // 0.1초
             timer.Tick += new EventHandler(timer_Tick);
 
-            //trackBar1.Width = (tickWidth * 10) * totalTime; // 정확하진 않지만 트랙바의 Width로 전체 시간 세팅
-
-            // 전체 틱 갯수 = 시간 * 초당 프레임갯수 * 프레임당 틱갯수 (맨 마지막거 그릴려면 1개 더)
+            // 전체 틱 갯수 = 시간 * 초당 프레임갯수 * 프레임당 틱갯수 (경계조건때문에 + 1)
             int totalTickCount = (totalTime * framePerSec * tickPerFrame) + 1;
 
             // 최대 인덱스 값
@@ -146,8 +148,8 @@ namespace TimeLineUI
             picBox_Ruler.Width = picBox_TimeEdit.Width;
 
             // 수동 스크롤된후 자동으로 화면이동시 중앙으로 비슷하게 이동하기 위해
-            //int tickCountPerPanel = ((panel_TimeEdit.Width - (boxGapWidth * 2)) / tickWidth);   // 한 화면당 나타낼 틱갯수 
-            int tickCountPerPanel = (panel_TimeEdit.Width - boxGapWidth) / tickWidth;   // 한 화면당 나타낼 틱갯수 
+            int calWidth = panel_Ruler.Width - boxGapWidth;         // 타임에디터 픽쳐박스의 세로스크롤바의 폭이 빠졌는지 체크
+            int tickCountPerPanel = (calWidth / tickWidth) + 1;     // 한 화면당 나타낼 틱갯수 (경계조건때문에 + 1)
 
             // 판넬당 표시되는 최대 인덱스 값
             maxIdxPerPanel = tickCountPerPanel - 1;
@@ -162,8 +164,8 @@ namespace TimeLineUI
             maxOffsetIdxWithCenter = maxOffsetZeroStartIdx - centerOffsetIdx;
             //minOffsetIdxWithCenter = 0;
 
-            panel2.HorizontalScroll.SmallChange = tickWidth;    // 양 사이드의 화살표 누를때 움직일 값
-            panel2.HorizontalScroll.LargeChange = tickWidth;    // 썸네일 밖에 영역을 누를때 움직일 값
+            //panel2.HorizontalScroll.SmallChange = tickWidth;    // 양 사이드의 화살표 누를때 움직일 값
+            //panel2.HorizontalScroll.LargeChange = tickWidth;    // 썸네일 밖에 영역을 누를때 움직일 값
 
             // 화면중앙부터 스크롤 되게 하려는 경계값
             currOffsetIdx = 0;
@@ -857,5 +859,7 @@ namespace TimeLineUI
             // 맨 마지막 요소 선택안할걸로 처리
             dGrid_TimeLineObj.Rows[dGrid_TimeLineObj.RowCount - 1].Selected = false;
         }
+
+       
     }
 }

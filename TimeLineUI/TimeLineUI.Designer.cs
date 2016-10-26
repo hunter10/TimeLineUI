@@ -47,7 +47,9 @@
             this.picBox_TimeEdit = new System.Windows.Forms.PictureBox();
             this.panel_Ruler = new System.Windows.Forms.Panel();
             this.picBox_Ruler = new System.Windows.Forms.PictureBox();
-            this.panel1 = new System.Windows.Forms.Panel();
+            this.panel_Right = new System.Windows.Forms.Panel();
+            this.panel_Total = new System.Windows.Forms.Panel();
+            this.panel_Left = new System.Windows.Forms.Panel();
             ((System.ComponentModel.ISupportInitialize)(this.dGrid_TimeLineObj)).BeginInit();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picBox_View)).BeginInit();
@@ -56,7 +58,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.picBox_TimeEdit)).BeginInit();
             this.panel_Ruler.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picBox_Ruler)).BeginInit();
-            this.panel1.SuspendLayout();
+            this.panel_Right.SuspendLayout();
+            this.panel_Total.SuspendLayout();
+            this.panel_Left.SuspendLayout();
             this.SuspendLayout();
             // 
             // dGrid_TimeLineObj
@@ -69,12 +73,12 @@
             this.name,
             this.Itemlock,
             this.itemView});
-            this.dGrid_TimeLineObj.Location = new System.Drawing.Point(0, 51);
+            this.dGrid_TimeLineObj.Location = new System.Drawing.Point(0, 49);
             this.dGrid_TimeLineObj.MultiSelect = false;
             this.dGrid_TimeLineObj.Name = "dGrid_TimeLineObj";
             this.dGrid_TimeLineObj.RowHeadersVisible = false;
             this.dGrid_TimeLineObj.RowTemplate.Height = 23;
-            this.dGrid_TimeLineObj.Size = new System.Drawing.Size(353, 197);
+            this.dGrid_TimeLineObj.Size = new System.Drawing.Size(353, 107);
             this.dGrid_TimeLineObj.TabIndex = 1;
             // 
             // name
@@ -106,7 +110,7 @@
             this.panel2.Controls.Add(this.btnOneStepNext);
             this.panel2.Controls.Add(this.btnGoReverse);
             this.panel2.Controls.Add(this.btnGoLast);
-            this.panel2.Location = new System.Drawing.Point(0, 24);
+            this.panel2.Location = new System.Drawing.Point(0, 21);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(345, 27);
             this.panel2.TabIndex = 13;
@@ -197,7 +201,8 @@
             // 
             // panel_TimeEdit
             // 
-            this.panel_TimeEdit.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.panel_TimeEdit.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel_TimeEdit.AutoScroll = true;
             this.panel_TimeEdit.BackColor = System.Drawing.SystemColors.ActiveCaption;
@@ -205,7 +210,7 @@
             this.panel_TimeEdit.Controls.Add(this.picBox_TimeEdit);
             this.panel_TimeEdit.Location = new System.Drawing.Point(0, 48);
             this.panel_TimeEdit.Name = "panel_TimeEdit";
-            this.panel_TimeEdit.Size = new System.Drawing.Size(477, 197);
+            this.panel_TimeEdit.Size = new System.Drawing.Size(154, 108);
             this.panel_TimeEdit.TabIndex = 14;
             this.panel_TimeEdit.Scroll += new System.Windows.Forms.ScrollEventHandler(this.panel_TimeEdit_Scroll);
             // 
@@ -214,14 +219,13 @@
             this.picBox_TimeEdit.BackColor = System.Drawing.SystemColors.ControlDark;
             this.picBox_TimeEdit.Location = new System.Drawing.Point(0, 0);
             this.picBox_TimeEdit.Name = "picBox_TimeEdit";
-            this.picBox_TimeEdit.Size = new System.Drawing.Size(489, 145);
+            this.picBox_TimeEdit.Size = new System.Drawing.Size(72, 58);
             this.picBox_TimeEdit.TabIndex = 0;
             this.picBox_TimeEdit.TabStop = false;
             // 
             // panel_Ruler
             // 
-            this.panel_Ruler.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.panel_Ruler.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel_Ruler.AutoScroll = true;
             this.panel_Ruler.BackColor = System.Drawing.SystemColors.ActiveBorder;
@@ -229,7 +233,7 @@
             this.panel_Ruler.ForeColor = System.Drawing.SystemColors.AppWorkspace;
             this.panel_Ruler.Location = new System.Drawing.Point(1, 3);
             this.panel_Ruler.Name = "panel_Ruler";
-            this.panel_Ruler.Size = new System.Drawing.Size(479, 45);
+            this.panel_Ruler.Size = new System.Drawing.Size(132, 45);
             this.panel_Ruler.TabIndex = 15;
             // 
             // picBox_Ruler
@@ -237,30 +241,53 @@
             this.picBox_Ruler.BackColor = System.Drawing.SystemColors.ScrollBar;
             this.picBox_Ruler.Location = new System.Drawing.Point(0, 0);
             this.picBox_Ruler.Name = "picBox_Ruler";
-            this.picBox_Ruler.Size = new System.Drawing.Size(414, 35);
+            this.picBox_Ruler.Size = new System.Drawing.Size(51, 35);
             this.picBox_Ruler.TabIndex = 0;
             this.picBox_Ruler.TabStop = false;
             // 
-            // panel1
+            // panel_Right
             // 
-            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.panel_Right.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel1.Controls.Add(this.panel_TimeEdit);
-            this.panel1.Controls.Add(this.panel_Ruler);
-            this.panel1.Location = new System.Drawing.Point(354, 3);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(507, 245);
-            this.panel1.TabIndex = 16;
+            this.panel_Right.Controls.Add(this.panel_TimeEdit);
+            this.panel_Right.Controls.Add(this.panel_Ruler);
+            this.panel_Right.Location = new System.Drawing.Point(369, 3);
+            this.panel_Right.Name = "panel_Right";
+            this.panel_Right.Size = new System.Drawing.Size(157, 156);
+            this.panel_Right.TabIndex = 16;
+            // 
+            // panel_Total
+            // 
+            this.panel_Total.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panel_Total.Controls.Add(this.panel_Left);
+            this.panel_Total.Controls.Add(this.panel_Right);
+            this.panel_Total.Location = new System.Drawing.Point(3, 3);
+            this.panel_Total.Name = "panel_Total";
+            this.panel_Total.Size = new System.Drawing.Size(531, 164);
+            this.panel_Total.TabIndex = 17;
+            // 
+            // panel_Left
+            // 
+            this.panel_Left.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
+            this.panel_Left.Controls.Add(this.dGrid_TimeLineObj);
+            this.panel_Left.Controls.Add(this.panel2);
+            this.panel_Left.Location = new System.Drawing.Point(3, 3);
+            this.panel_Left.Name = "panel_Left";
+            this.panel_Left.Size = new System.Drawing.Size(360, 156);
+            this.panel_Left.TabIndex = 0;
             // 
             // TimeLineUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.panel1);
-            this.Controls.Add(this.panel2);
-            this.Controls.Add(this.dGrid_TimeLineObj);
+            this.Controls.Add(this.panel_Total);
             this.Name = "TimeLineUI";
-            this.Size = new System.Drawing.Size(864, 252);
+            this.Size = new System.Drawing.Size(539, 170);
+            this.Load += new System.EventHandler(this.TimeLineUI_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dGrid_TimeLineObj)).EndInit();
             this.panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.picBox_View)).EndInit();
@@ -269,7 +296,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.picBox_TimeEdit)).EndInit();
             this.panel_Ruler.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.picBox_Ruler)).EndInit();
-            this.panel1.ResumeLayout(false);
+            this.panel_Right.ResumeLayout(false);
+            this.panel_Total.ResumeLayout(false);
+            this.panel_Left.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -294,6 +323,8 @@
         private System.Windows.Forms.PictureBox picBox_TimeEdit;
         private System.Windows.Forms.Panel panel_Ruler;
         private System.Windows.Forms.PictureBox picBox_Ruler;
-        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.Panel panel_Right;
+        private System.Windows.Forms.Panel panel_Total;
+        private System.Windows.Forms.Panel panel_Left;
     }
 }

@@ -24,6 +24,11 @@ namespace TimeLineUI_Test
         {
             int a = 0;
         }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }
 
