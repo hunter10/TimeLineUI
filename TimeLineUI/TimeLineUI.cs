@@ -106,7 +106,7 @@ namespace TimeLineUI
             picBox_Ruler.Paint += new PaintEventHandler(picBox_Ruler_Paint);
             picBox_Ruler.MouseDown += new MouseEventHandler(picBox_Ruler_MouseDown);
 
-            // 스크롤바 없애기
+            // 눈금판넬 스크롤바 없애기
             panel_Ruler.AutoScroll = false;
             panel_Ruler.HorizontalScroll.Enabled = false;
             panel_Ruler.HorizontalScroll.Visible = false;
@@ -136,7 +136,8 @@ namespace TimeLineUI
 
             // 그리드 뷰가 한행 만큼 더 만들어 지므로 오른쪽 픽쳐박스는 한 행 높이 만큼 더하는데 
             // 픽쳐박스는 가로 스크롤뷰가 있으므로 그 높이 만큼 빼면 스크롤이 딱 맞게 됨
-            picBox_TimeEdit_TrimH = dGrid_TimeLineObj.RowTemplate.Height - SystemInformation.HorizontalScrollBarHeight;
+            // 컨트롤끼리의 높이차 보정을 따로 해야 함. (- 12)
+            picBox_TimeEdit_TrimH = dGrid_TimeLineObj.RowTemplate.Height - SystemInformation.HorizontalScrollBarHeight - 0;
 
             btnGoFirst.Click += new EventHandler(btnGoFirst_Click);
             btnOneStepPrev.Click += new EventHandler(btnOneStepPrev_Click);
@@ -178,7 +179,7 @@ namespace TimeLineUI
             // 최대 오프셋값 = (전체 인덱스 - 판넬당 최대인덱스) 
             maxOffsetIdx_FromZero = maxIdx - maxIdxPerPanel;
             
-            // 화면중앙부터 스크롤 되게 하려는 경계값
+            
             currOffsetIdx = 0;
             
             HorizontalTickInit();
@@ -204,10 +205,6 @@ namespace TimeLineUI
                 drawTicks.Add(tickObj);
             }
         }
-
-        
-
-
 
         private void picBox_TimeEdit_Paint(object sender, PaintEventArgs e)
         {
@@ -281,13 +278,10 @@ namespace TimeLineUI
                 {
                     if (selectedTimeLineObj.objType == TIMEOBJTYPE.END)
                     {
-                        //contextMenuStrip1.Show(picBox_TimeEdit, e.Location);
                         contextMenu1.Show(picBox_TimeEdit, e.Location);
                     }
                 }
             }
-
-            //if (selectedTimeLineObj == null) Console.WriteLine("selectedTimeLineObj is NULL!!!");
         }
 
 
@@ -313,18 +307,8 @@ namespace TimeLineUI
                 if (selectedTimeLineObj.objType == TIMEOBJTYPE.BODY)
                 {
                     s_offset = e.X - selectedTimeLineObj.SPos.X;
-                    //e_offset = selectedTimeLineObj.EPos.X - e.X;
                     e_offset = (selectedTimeLineObj.EPos.X + selectedTimeLineObj.EIcon.Width) - e.X;
                 }
-
-                //int convEIdx1 = ConvPointToTickIdx(new Point(e.X, e.Y));
-                //int convEIdx2 = ConvPointToTickIdx(new Point(e.X, e.Y), TIMEOBJTYPE.END, 16);
-
-
-                //Console.WriteLine("{0}, {1}", convEIdx1, 0);
-                //Console.WriteLine("type={0}", selectedTimeLineObj.objType);
-                //Console.WriteLine("dGrid_TimeLineObj VerticalScrollingOffset:{0}, RowHeight:{1}", dGrid_TimeLineObj.VerticalScrollingOffset, dGrid_TimeLineObj.RowTemplate.Height);
-                //Console.WriteLine("{0} ({1},{2}) AutoScroll:{3}", selectedTimeLineObj.Name, e.X, e.Y, panel_TimeEdit.AutoScrollPosition);
             }
 
             picBox_TimeEdit.Invalidate();
@@ -400,8 +384,8 @@ namespace TimeLineUI
             s_offset = -1;
             e_offset = -1;
 
-            if (selectedTimeLineObj != null)
-                Console.WriteLine("S:{0}, E:{1}", selectedTimeLineObj.STick, selectedTimeLineObj.ETick);
+            //if (selectedTimeLineObj != null)
+            //    Console.WriteLine("S:{0}, E:{1}", selectedTimeLineObj.STick, selectedTimeLineObj.ETick);
         }
 
         // 이 함수는 타임라인 오브젝트에서 체크해야 할듯
@@ -448,17 +432,6 @@ namespace TimeLineUI
 
             return true;
         }
-
-
-
-
-
-
-
-
-
-
-
 
         private void btnGoFirst_Click(object sender, EventArgs e)
         {
@@ -547,7 +520,7 @@ namespace TimeLineUI
                     int y = panel_TimeEdit.AutoScrollPosition.Y;
                     panel_TimeEdit.AutoScrollPosition = new Point(x, y);
                     panel_Ruler.AutoScrollPosition = new Point(x, y);
-                    Console.WriteLine("스크롤 된후 currIdx {0} >= offsetStartIdx_FromZero {1}, currOffsetIdx{2}, ScrollPos {2}", currIdx, offsetStartIdx_FromZero, currOffsetIdx, panel_TimeEdit.AutoScrollPosition);
+                    //Console.WriteLine("스크롤 된후 currIdx {0} >= offsetStartIdx_FromZero {1}, currOffsetIdx{2}, ScrollPos {2}", currIdx, offsetStartIdx_FromZero, currOffsetIdx, panel_TimeEdit.AutoScrollPosition);
                 }
             }
 
@@ -655,7 +628,13 @@ namespace TimeLineUI
         private void dGrid_TimeLineObj_MouseClick(object sender, MouseEventArgs e)
         {
             DataGridView.HitTestInfo info = dGrid_TimeLineObj.HitTest(e.Location.X, e.Location.Y);
-            
+
+            if (info.RowIndex < 0 || info.ColumnIndex < 0)
+                return;
+
+            if (info.RowIndex > lstTimeLineObj.Count)
+                return;
+
             selectedTimeLineObj = lstTimeLineObj[info.RowIndex];
             if (selectedTimeLineObj == null)
                 return;
@@ -832,19 +811,12 @@ namespace TimeLineUI
             int y = panel_TimeEdit.AutoScrollPosition.Y;
             panel_TimeEdit.AutoScrollPosition = new Point(x, y);
             panel_Ruler.AutoScrollPosition = new Point(x, y);
-            Console.WriteLine("스크롤 된후 currIdx {0} >= offsetStartIdx_FromZero {1}, currOffsetIdx{2}, ScrollPos {2}", currIdx, offsetStartIdx_FromZero, currOffsetIdx, panel_TimeEdit.AutoScrollPosition);
+            //Console.WriteLine("스크롤 된후 currIdx {0} >= offsetStartIdx_FromZero {1}, currOffsetIdx{2}, ScrollPos {2}", currIdx, offsetStartIdx_FromZero, currOffsetIdx, panel_TimeEdit.AutoScrollPosition);
             
-            Console.WriteLine("1 MoveToTickIdxAndAutoScroll maxIdx {0}, maxIdxPerPanel {1}, currOffsetIdx {2}, offsetStartIdx_FromZero:{3}", maxIdx, maxIdxPerPanel, currOffsetIdx, offsetStartIdx_FromZero);
+            //Console.WriteLine("1 MoveToTickIdxAndAutoScroll maxIdx {0}, maxIdxPerPanel {1}, currOffsetIdx {2}, offsetStartIdx_FromZero:{3}", maxIdx, maxIdxPerPanel, currOffsetIdx, offsetStartIdx_FromZero);
         }
 
-        // 테스트용 임시 데이터 생성용
-        private void picBox_View_Click(object sender, EventArgs e)
-        {
-            for(int i=0 ; i<12 ; i++)
-                AddTimeObj(string.Format("test{0}", i), true, true);
-
-            dGrid_TimeLineObj.ClearSelection();
-        }
+        
 
         public void AddTimeObj(string r_name, bool r_lock = false, bool r_view = true)
         {
@@ -869,9 +841,14 @@ namespace TimeLineUI
             //Console.WriteLine("1 dGrid_TimeLineObj Height {0}, Count {1}, Row Height {2}, dGrid_TimeLineObjHeight {3}, SystemInformation.HorizontalScrollBarHeight {4}", dGrid_TimeLineObj.Height, lstTimeLineObj.Count, dGrid_TimeLineObj.RowTemplate.Height, dGrid_TimeLineObjHeight, SystemInformation.HorizontalScrollBarHeight);
 
             // 우측 판넬 세팅 
-            picBox_TimeEdit.Height = (lstTimeLineObj.Count * dGrid_TimeLineObj.RowTemplate.Height) + picBox_TimeEdit_TrimH;
+            
+            int tempH = (lstTimeLineObj.Count * dGrid_TimeLineObj.RowTemplate.Height) + picBox_TimeEdit_TrimH;
+            if (picBox_TimeEdit.Height <= picBox_TimeEdit_MinHeight)
+                picBox_TimeEdit.Height = picBox_TimeEdit_MinHeight;
+            else
+                picBox_TimeEdit.Height = tempH;
 
-            picBox_TimeEdit.Invalidate();
+            
         }
 
         private void panel_Total_Resize(object sender, EventArgs e)
@@ -899,6 +876,52 @@ namespace TimeLineUI
         private void dGrid_TimeLineObj_SizeChanged(object sender, EventArgs e)
         {
             Console.WriteLine("SizeChanged dGrid_TimeLineObj.Height {0}, dGrid_TimeLineObjHeight {1}", dGrid_TimeLineObj.Height, dGrid_TimeLineObjHeight);
+        }
+
+        // 테스트용 임시 데이터 생성용
+        private void picBox_View_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < 1; i++)
+                AddTimeObj(string.Format("test{0}", i), true, true);
+
+            dGrid_TimeLineObj.ClearSelection();
+            picBox_TimeEdit.Invalidate();
+        }
+
+        // 테스트용 데이터 초기화용
+        private void picBox_Lock_Click(object sender, EventArgs e)
+        {
+            TimeLineUI_Reset();
+
+            picBox_TimeEdit.Invalidate();
+            picBox_Ruler.Invalidate();
+            dGrid_TimeLineObj.Invalidate();
+        }
+
+        public void TimeLineUI_Reset()
+        {
+            lstTimeLineObj.Clear();
+
+            // 좌측 판넬 초기화
+            dGrid_TimeLineObj.DataSource = null;
+            dGrid_TimeLineObj.Rows.Clear();
+            dGrid_TimeLineObj.ClearSelection();
+
+            // 우측 판넬 초기화
+            picBox_TimeEdit.Height = picBox_TimeEdit_MinHeight;
+
+            currIdx = 0;
+            currOffsetIdx = 0;
+
+            nowTimeLine_picboxTimeEdit.SPos = new Point(boxGapWidth, nowTimeLine_picboxTimeEdit.SPos.Y);
+            nowTimeLine_picboxTimeEdit.EPos = new Point(boxGapWidth, nowTimeLine_picboxTimeEdit.EPos.Y);
+
+            nowTimeLine_picboxRuler.SPos = new Point(boxGapWidth, nowTimeLine_picboxRuler.SPos.Y);
+            nowTimeLine_picboxRuler.EPos = new Point(boxGapWidth, nowTimeLine_picboxRuler.EPos.Y);
+
+            int y = panel_TimeEdit.AutoScrollPosition.Y;
+            panel_TimeEdit.AutoScrollPosition = new Point(0, y);
+            panel_Ruler.AutoScrollPosition = new Point(0, y);
         }
     }
 }

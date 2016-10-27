@@ -172,6 +172,7 @@
             this.picBox_Lock.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.picBox_Lock.TabIndex = 8;
             this.picBox_Lock.TabStop = false;
+            this.picBox_Lock.Click += new System.EventHandler(this.picBox_Lock_Click);
             // 
             // btnOneStepNext
             // 
