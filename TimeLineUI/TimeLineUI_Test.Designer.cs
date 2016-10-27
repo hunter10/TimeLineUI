@@ -38,17 +38,15 @@
             this.timeLineUI1.Name = "timeLineUI1";
             this.timeLineUI1.Size = new System.Drawing.Size(777, 203);
             this.timeLineUI1.TabIndex = 0;
-            this.timeLineUI1.Resize += new System.EventHandler(this.timeLineUI1_Resize);
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(777, 203);
-            this.Controls.Add(this.timeLineUI1);
+            this.Controls.Add(timeLineUI1);
             this.Name = "MainForm";
             this.Text = "TimeLineUI_Test";
-            this.Load += new System.EventHandler(this.MainForm_Load);
             this.Resize += new System.EventHandler(this.MainForm_Resize);
             this.ResumeLayout(false);
 

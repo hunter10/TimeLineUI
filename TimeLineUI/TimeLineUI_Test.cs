@@ -22,17 +22,6 @@ namespace TimeLineUI_Test
 
         private void MainForm_Resize(object sender, EventArgs e)
         {
-            int a = 0;
-        }
-
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void timeLineUI1_Resize(object sender, EventArgs e)
-        {
-            
         }
     }
 }

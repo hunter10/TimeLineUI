@@ -46,6 +46,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TimeLineDataGridView.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="TimeLineUI_Test.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TimeLineUI));
-            this.dGrid_TimeLineObj = new System.Windows.Forms.DataGridView();
+            this.dGrid_TimeLineObj = new TimeLineUI.TimeLineDataGridView();
             this.name = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Itemlock = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.itemView = new System.Windows.Forms.DataGridViewCheckBoxColumn();
@@ -83,6 +83,7 @@
             // 
             // name
             // 
+            this.name.Frozen = true;
             this.name.HeaderText = "Name";
             this.name.Name = "name";
             this.name.Width = 250;
@@ -210,7 +211,7 @@
             this.panel_TimeEdit.Controls.Add(this.picBox_TimeEdit);
             this.panel_TimeEdit.Location = new System.Drawing.Point(0, 48);
             this.panel_TimeEdit.Name = "panel_TimeEdit";
-            this.panel_TimeEdit.Size = new System.Drawing.Size(154, 108);
+            this.panel_TimeEdit.Size = new System.Drawing.Size(209, 107);
             this.panel_TimeEdit.TabIndex = 14;
             this.panel_TimeEdit.Scroll += new System.Windows.Forms.ScrollEventHandler(this.panel_TimeEdit_Scroll);
             // 
@@ -233,7 +234,7 @@
             this.panel_Ruler.ForeColor = System.Drawing.SystemColors.AppWorkspace;
             this.panel_Ruler.Location = new System.Drawing.Point(1, 3);
             this.panel_Ruler.Name = "panel_Ruler";
-            this.panel_Ruler.Size = new System.Drawing.Size(132, 45);
+            this.panel_Ruler.Size = new System.Drawing.Size(187, 45);
             this.panel_Ruler.TabIndex = 15;
             // 
             // picBox_Ruler
@@ -252,9 +253,9 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.panel_Right.Controls.Add(this.panel_TimeEdit);
             this.panel_Right.Controls.Add(this.panel_Ruler);
-            this.panel_Right.Location = new System.Drawing.Point(369, 3);
+            this.panel_Right.Location = new System.Drawing.Point(365, 3);
             this.panel_Right.Name = "panel_Right";
-            this.panel_Right.Size = new System.Drawing.Size(157, 156);
+            this.panel_Right.Size = new System.Drawing.Size(233, 156);
             this.panel_Right.TabIndex = 16;
             // 
             // panel_Total
@@ -266,7 +267,7 @@
             this.panel_Total.Controls.Add(this.panel_Right);
             this.panel_Total.Location = new System.Drawing.Point(3, 3);
             this.panel_Total.Name = "panel_Total";
-            this.panel_Total.Size = new System.Drawing.Size(531, 164);
+            this.panel_Total.Size = new System.Drawing.Size(601, 164);
             this.panel_Total.TabIndex = 17;
             this.panel_Total.Resize += new System.EventHandler(this.panel_Total_Resize);
             // 
@@ -278,7 +279,7 @@
             this.panel_Left.Controls.Add(this.panel2);
             this.panel_Left.Location = new System.Drawing.Point(3, 3);
             this.panel_Left.Name = "panel_Left";
-            this.panel_Left.Size = new System.Drawing.Size(360, 156);
+            this.panel_Left.Size = new System.Drawing.Size(356, 156);
             this.panel_Left.TabIndex = 0;
             // 
             // TimeLineUI
@@ -287,7 +288,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.panel_Total);
             this.Name = "TimeLineUI";
-            this.Size = new System.Drawing.Size(539, 170);
+            this.Size = new System.Drawing.Size(607, 170);
             this.Load += new System.EventHandler(this.TimeLineUI_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dGrid_TimeLineObj)).EndInit();
             this.panel2.ResumeLayout(false);
@@ -306,10 +307,8 @@
 
         #endregion
 
-        private System.Windows.Forms.DataGridView dGrid_TimeLineObj;
-        private System.Windows.Forms.DataGridViewTextBoxColumn name;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn Itemlock;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn itemView;
+        //private System.Windows.Forms.DataGridView dGrid_TimeLineObj;
+        private TimeLineDataGridView dGrid_TimeLineObj;
         private System.Windows.Forms.Panel panel2;
         private System.Windows.Forms.Button btnGoFirst;
         private System.Windows.Forms.Button btnOneStepPrev;
@@ -327,5 +326,12 @@
         private System.Windows.Forms.Panel panel_Right;
         private System.Windows.Forms.Panel panel_Total;
         private System.Windows.Forms.Panel panel_Left;
+        private System.Windows.Forms.DataGridViewTextBoxColumn name;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn Itemlock;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn itemView;
+
+        private class TimeLineDataGridView : global::TimeLineUI.TimeLineDataGridView
+        {
+        }
     }
 }
