@@ -42,10 +42,10 @@ namespace TimeLineUI
         public int STick { get; set; }                      // 시작 포인트 틱
         public int ETick { get; set; }                      // 끝 포인트 틱
 
-        // 끝점 시작점은 아이콘 폭만큼 뺀 차이를 더해야 함
-        public int ConvEndPosStart(int EndPosX, int TickWidth)
+        // 끝점 시작점은 아이콘 폭만큼 빼면됨.
+        public int ConvEndPosStart(int PosX, int TickWidth)
         {
-            return EndPosX + (TickWidth - EIcon.Width);
+            return PosX - EIcon.Width;
         }
 
         public TimeLineObject(Point point1, Point point2, int tickWidth)
