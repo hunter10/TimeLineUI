@@ -40,7 +40,7 @@ namespace TimeLineUI
         const int timePerFrame = 100;           // 프레임당 시간 (0.1초)
         const int tickPerFrame = 2;             // 프레임당 틱갯수
         const int framePerSec = 5;              // 초당 5프레임
-        const int tickWidth = 20;               // 이 간격을 0.1초로 계산
+        const int tickWidth = 5;               // 이 간격을 0.1초로 계산
         const int totalTime = 10;                // 전체 작업시간(초)
         
 
@@ -374,6 +374,23 @@ namespace TimeLineUI
             picBox_Ruler.Invalidate();
         }
 
+
+        private void StarTimeLineProcess(int tickIndex)
+        {
+            startPTimeLine_picboxTimeEdit.SPos = ConvTickIdxToPoint(tickIndex, startPTimeLine_picboxTimeEdit.SPos.Y);
+            startPTimeLine_picboxTimeEdit.EPos = ConvTickIdxToPoint(tickIndex, startPTimeLine_picboxTimeEdit.EPos.Y);
+            startPTimeLine_picboxRuler.SPos = ConvTickIdxToPoint(tickIndex, startPTimeLine_picboxRuler.SPos.Y);
+            startPTimeLine_picboxRuler.EPos = ConvTickIdxToPoint(tickIndex, startPTimeLine_picboxRuler.EPos.Y);
+        }
+
+        private void EndTimeLineProcess(int tickIndex)
+        {
+            endPTimeLine_picboxTimeEdit.SPos = ConvTickIdxToPoint(tickIndex, endPTimeLine_picboxTimeEdit.SPos.Y);
+            endPTimeLine_picboxTimeEdit.EPos = ConvTickIdxToPoint(tickIndex, endPTimeLine_picboxTimeEdit.EPos.Y);
+            endPTimeLine_picboxRuler.SPos = ConvTickIdxToPoint(tickIndex, endPTimeLine_picboxRuler.SPos.Y);
+            endPTimeLine_picboxRuler.EPos = ConvTickIdxToPoint(tickIndex, endPTimeLine_picboxRuler.EPos.Y);
+        }
+
         private void picBox_TimeEdit_MouseMove(object sender, MouseEventArgs e)
         {
             //if (mouseClicked)
@@ -385,21 +402,17 @@ namespace TimeLineUI
                 if (CheckPanelBound(new Point(e.X, 0), selectedTimeLineObj) == false)
                     return;
 
+                if (CheckObjectBound(new Point(e.X, 0), selectedTimeLineObj) == false)
+                    return;
+
                 if (selectedTimeLineObj.objType == TIMEOBJTYPE.START) // 시작점 움직이기
                 {
                     int convIdx = ConvPointToTickIdx(new Point(e.X, e.Y));
                     selectedTimeLineObj.SPos = ConvTickIdxToPoint(convIdx, selectedTimeLineObj.SPos.Y);
                     selectedTimeLineObj.STick = convIdx;
 
-                    startPTimeLine_picboxTimeEdit.SPos = ConvTickIdxToPoint(convIdx, startPTimeLine_picboxTimeEdit.SPos.Y);
-                    startPTimeLine_picboxTimeEdit.EPos = ConvTickIdxToPoint(convIdx, startPTimeLine_picboxTimeEdit.EPos.Y);
-                    startPTimeLine_picboxRuler.SPos = ConvTickIdxToPoint(convIdx, startPTimeLine_picboxRuler.SPos.Y);
-                    startPTimeLine_picboxRuler.EPos = ConvTickIdxToPoint(convIdx, startPTimeLine_picboxRuler.EPos.Y);
-
-                    endPTimeLine_picboxTimeEdit.SPos = ConvTickIdxToPoint(selectedTimeLineObj.ETick, endPTimeLine_picboxTimeEdit.SPos.Y);
-                    endPTimeLine_picboxTimeEdit.EPos = ConvTickIdxToPoint(selectedTimeLineObj.ETick, endPTimeLine_picboxTimeEdit.EPos.Y);
-                    endPTimeLine_picboxRuler.SPos = ConvTickIdxToPoint(selectedTimeLineObj.ETick, endPTimeLine_picboxRuler.SPos.Y);
-                    endPTimeLine_picboxRuler.EPos = ConvTickIdxToPoint(selectedTimeLineObj.ETick, endPTimeLine_picboxRuler.EPos.Y);
+                    StarTimeLineProcess(convIdx);
+                    EndTimeLineProcess(selectedTimeLineObj.ETick);
                 }
                 else if (selectedTimeLineObj.objType == TIMEOBJTYPE.END) // 끝점 움직이기
                 {
@@ -410,15 +423,8 @@ namespace TimeLineUI
                     selectedTimeLineObj.EPos = new Point(convX, selectedTimeLineObj.EPos.Y);
                     selectedTimeLineObj.ETick = convIdx;
 
-                    startPTimeLine_picboxTimeEdit.SPos = ConvTickIdxToPoint(selectedTimeLineObj.STick, startPTimeLine_picboxTimeEdit.SPos.Y);
-                    startPTimeLine_picboxTimeEdit.EPos = ConvTickIdxToPoint(selectedTimeLineObj.STick, startPTimeLine_picboxTimeEdit.EPos.Y);
-                    startPTimeLine_picboxRuler.SPos = ConvTickIdxToPoint(selectedTimeLineObj.STick, startPTimeLine_picboxRuler.SPos.Y);
-                    startPTimeLine_picboxRuler.EPos = ConvTickIdxToPoint(selectedTimeLineObj.STick, startPTimeLine_picboxRuler.EPos.Y);
-
-                    endPTimeLine_picboxTimeEdit.SPos = ConvTickIdxToPoint(convIdx, endPTimeLine_picboxTimeEdit.SPos.Y);
-                    endPTimeLine_picboxTimeEdit.EPos = ConvTickIdxToPoint(convIdx, endPTimeLine_picboxTimeEdit.EPos.Y);
-                    endPTimeLine_picboxRuler.SPos = ConvTickIdxToPoint(convIdx, endPTimeLine_picboxRuler.SPos.Y);
-                    endPTimeLine_picboxRuler.EPos = ConvTickIdxToPoint(convIdx, endPTimeLine_picboxRuler.EPos.Y);
+                    StarTimeLineProcess(selectedTimeLineObj.STick);
+                    EndTimeLineProcess(convIdx);
                 }
                 // 몸통을 잡고 움직이는 것는 클릭위치와 끝점간의 계산때문에 (나누기 연산의 오차)
                 // 아이폰 크기가 틱 간격보다 작을때 안맞을수 있음.
@@ -440,15 +446,8 @@ namespace TimeLineUI
                     selectedTimeLineObj.STick = convSIdx;
                     selectedTimeLineObj.ETick = convEIdx;
 
-                    startPTimeLine_picboxTimeEdit.SPos = ConvTickIdxToPoint(convSIdx, startPTimeLine_picboxTimeEdit.SPos.Y);
-                    startPTimeLine_picboxTimeEdit.EPos = ConvTickIdxToPoint(convSIdx, startPTimeLine_picboxTimeEdit.EPos.Y);
-                    startPTimeLine_picboxRuler.SPos = ConvTickIdxToPoint(convSIdx, startPTimeLine_picboxRuler.SPos.Y);
-                    startPTimeLine_picboxRuler.EPos = ConvTickIdxToPoint(convSIdx, startPTimeLine_picboxRuler.EPos.Y);
-
-                    endPTimeLine_picboxTimeEdit.SPos = ConvTickIdxToPoint(convEIdx, endPTimeLine_picboxTimeEdit.SPos.Y);
-                    endPTimeLine_picboxTimeEdit.EPos = ConvTickIdxToPoint(convEIdx, endPTimeLine_picboxTimeEdit.EPos.Y);
-                    endPTimeLine_picboxRuler.SPos = ConvTickIdxToPoint(convEIdx, endPTimeLine_picboxRuler.SPos.Y);
-                    endPTimeLine_picboxRuler.EPos = ConvTickIdxToPoint(convEIdx, endPTimeLine_picboxRuler.EPos.Y);
+                    StarTimeLineProcess(convSIdx);
+                    EndTimeLineProcess(convEIdx);
                 }
 
                 picBox_TimeEdit.Refresh();
@@ -508,6 +507,29 @@ namespace TimeLineUI
 
             //Console.WriteLine(string.Format("panel_TimeEdit.AutoScrollPosition : {0}", panel_TimeEdit.AutoScrollPosition));
 
+            return true;
+        }
+
+        // 오른쪽 아이콘이 왼쪽 아이콘/ 또는 그 반대의 경우로 넘어가는지 체크
+        private bool CheckObjectBound(Point p, TimeLineObject selobj)
+        {
+            int nERight = 0;
+            //int nELeft = 0;
+            //int nSRight = 0;
+            int nSLeft = 0;
+            TIMEOBJTYPE type = selobj.objType;
+
+            if(type == TIMEOBJTYPE.END)
+            {
+                nSLeft = selobj.SPos.X;
+                if (p.X <= nSLeft) return false;
+            }
+            else if (type == TIMEOBJTYPE.START)
+            {
+                nERight = selobj.EPos.X + selobj.EIcon.Width;
+                if (p.X >= nERight) return false; // 시간 기준이 각 아이콘의 우측기준인데 끝점은 오른쪽면이 기준임.
+            }
+            //Console.WriteLine("nSRight:{0}, nSLeft:{1} / nERight:{2}, nELeft:{3}", nSRight, nSLeft, nERight, nELeft);
             return true;
         }
 
