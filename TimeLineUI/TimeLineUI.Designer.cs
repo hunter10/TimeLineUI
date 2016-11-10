@@ -214,7 +214,6 @@
             this.panel_TimeEdit.Name = "panel_TimeEdit";
             this.panel_TimeEdit.Size = new System.Drawing.Size(209, 107);
             this.panel_TimeEdit.TabIndex = 14;
-            this.panel_TimeEdit.Scroll += new System.Windows.Forms.ScrollEventHandler(this.panel_TimeEdit_Scroll);
             // 
             // picBox_TimeEdit
             // 
@@ -224,6 +223,7 @@
             this.picBox_TimeEdit.Size = new System.Drawing.Size(72, 58);
             this.picBox_TimeEdit.TabIndex = 0;
             this.picBox_TimeEdit.TabStop = false;
+            this.picBox_TimeEdit.Move += new System.EventHandler(this.picBox_TimeEdit_Move);
             // 
             // panel_Ruler
             // 
