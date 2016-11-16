@@ -48,8 +48,10 @@
             this.panel_Ruler = new System.Windows.Forms.Panel();
             this.picBox_Ruler = new System.Windows.Forms.PictureBox();
             this.panel_Right = new System.Windows.Forms.Panel();
+            this.lbZoomRatio = new System.Windows.Forms.Label();
             this.panel_Total = new System.Windows.Forms.Panel();
             this.panel_Left = new System.Windows.Forms.Panel();
+            this.trackBar1 = new System.Windows.Forms.TrackBar();
             ((System.ComponentModel.ISupportInitialize)(this.dGrid_TimeLineObj)).BeginInit();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picBox_View)).BeginInit();
@@ -61,10 +63,13 @@
             this.panel_Right.SuspendLayout();
             this.panel_Total.SuspendLayout();
             this.panel_Left.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.SuspendLayout();
             // 
             // dGrid_TimeLineObj
             // 
+            this.dGrid_TimeLineObj.AllowUserToResizeColumns = false;
+            this.dGrid_TimeLineObj.AllowUserToResizeRows = false;
             this.dGrid_TimeLineObj.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.dGrid_TimeLineObj.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -78,7 +83,7 @@
             this.dGrid_TimeLineObj.Name = "dGrid_TimeLineObj";
             this.dGrid_TimeLineObj.RowHeadersVisible = false;
             this.dGrid_TimeLineObj.RowTemplate.Height = 23;
-            this.dGrid_TimeLineObj.Size = new System.Drawing.Size(353, 107);
+            this.dGrid_TimeLineObj.Size = new System.Drawing.Size(353, 202);
             this.dGrid_TimeLineObj.TabIndex = 1;
             // 
             // name
@@ -212,7 +217,7 @@
             this.panel_TimeEdit.Controls.Add(this.picBox_TimeEdit);
             this.panel_TimeEdit.Location = new System.Drawing.Point(0, 48);
             this.panel_TimeEdit.Name = "panel_TimeEdit";
-            this.panel_TimeEdit.Size = new System.Drawing.Size(209, 107);
+            this.panel_TimeEdit.Size = new System.Drawing.Size(209, 203);
             this.panel_TimeEdit.TabIndex = 14;
             // 
             // picBox_TimeEdit
@@ -252,12 +257,23 @@
             this.panel_Right.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.panel_Right.Controls.Add(this.lbZoomRatio);
             this.panel_Right.Controls.Add(this.panel_TimeEdit);
             this.panel_Right.Controls.Add(this.panel_Ruler);
             this.panel_Right.Location = new System.Drawing.Point(365, 3);
             this.panel_Right.Name = "panel_Right";
-            this.panel_Right.Size = new System.Drawing.Size(233, 156);
+            this.panel_Right.Size = new System.Drawing.Size(233, 302);
             this.panel_Right.TabIndex = 16;
+            // 
+            // lbZoomRatio
+            // 
+            this.lbZoomRatio.AutoSize = true;
+            this.lbZoomRatio.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.lbZoomRatio.Location = new System.Drawing.Point(0, 290);
+            this.lbZoomRatio.Name = "lbZoomRatio";
+            this.lbZoomRatio.Size = new System.Drawing.Size(11, 12);
+            this.lbZoomRatio.TabIndex = 16;
+            this.lbZoomRatio.Text = "0";
             // 
             // panel_Total
             // 
@@ -268,7 +284,7 @@
             this.panel_Total.Controls.Add(this.panel_Right);
             this.panel_Total.Location = new System.Drawing.Point(3, 3);
             this.panel_Total.Name = "panel_Total";
-            this.panel_Total.Size = new System.Drawing.Size(601, 164);
+            this.panel_Total.Size = new System.Drawing.Size(601, 308);
             this.panel_Total.TabIndex = 17;
             this.panel_Total.Resize += new System.EventHandler(this.panel_Total_Resize);
             // 
@@ -276,12 +292,25 @@
             // 
             this.panel_Left.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
+            this.panel_Left.Controls.Add(this.trackBar1);
             this.panel_Left.Controls.Add(this.dGrid_TimeLineObj);
             this.panel_Left.Controls.Add(this.panel2);
             this.panel_Left.Location = new System.Drawing.Point(3, 3);
             this.panel_Left.Name = "panel_Left";
-            this.panel_Left.Size = new System.Drawing.Size(356, 156);
+            this.panel_Left.Size = new System.Drawing.Size(356, 302);
             this.panel_Left.TabIndex = 0;
+            // 
+            // trackBar1
+            // 
+            this.trackBar1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.trackBar1.Location = new System.Drawing.Point(0, 257);
+            this.trackBar1.Maximum = 30;
+            this.trackBar1.Minimum = 1;
+            this.trackBar1.Name = "trackBar1";
+            this.trackBar1.Size = new System.Drawing.Size(356, 45);
+            this.trackBar1.TabIndex = 17;
+            this.trackBar1.Value = 1;
+            this.trackBar1.Scroll += new System.EventHandler(this.trackBar1_Scroll);
             // 
             // TimeLineUI
             // 
@@ -289,7 +318,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.panel_Total);
             this.Name = "TimeLineUI";
-            this.Size = new System.Drawing.Size(607, 170);
+            this.Size = new System.Drawing.Size(607, 314);
             this.Load += new System.EventHandler(this.TimeLineUI_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dGrid_TimeLineObj)).EndInit();
             this.panel2.ResumeLayout(false);
@@ -300,8 +329,11 @@
             this.panel_Ruler.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.picBox_Ruler)).EndInit();
             this.panel_Right.ResumeLayout(false);
+            this.panel_Right.PerformLayout();
             this.panel_Total.ResumeLayout(false);
             this.panel_Left.ResumeLayout(false);
+            this.panel_Left.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -330,9 +362,12 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn name;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Itemlock;
         private System.Windows.Forms.DataGridViewCheckBoxColumn itemView;
+        private System.Windows.Forms.TrackBar trackBar1;
+        private System.Windows.Forms.Label lbZoomRatio;
 
         private class TimeLineDataGridView : global::TimeLineUI.TimeLineDataGridView
         {
         }
+
     }
 }
