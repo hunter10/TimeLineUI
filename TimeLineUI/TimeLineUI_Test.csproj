@@ -48,6 +48,8 @@
   <ItemGroup>
     <Compile Include="EventObject.cs" />
     <Compile Include="EventObjectMng.cs" />
+    <Compile Include="SelectObject.cs" />
+    <Compile Include="TimeBodyObject.cs" />
     <Compile Include="TimeLineDataGridView.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -66,6 +68,7 @@
     <Compile Include="TimeLineUI.Designer.cs">
       <DependentUpon>TimeLineUI.cs</DependentUpon>
     </Compile>
+    <Compile Include="TimeObject.cs" />
     <EmbeddedResource Include="TimeLineUI_Test.resx">
       <DependentUpon>TimeLineUI_Test.cs</DependentUpon>
     </EmbeddedResource>
