@@ -10,31 +10,22 @@ namespace TimeLineUI
 {
     class TimeObject : SelectObject
     {
-        public int BoxWidth;// = 6;
-        public int BoxHeight;// = 12;
+        static public int BoxWidth = 6;
+        static public int BoxHeight = 16;
 
         private SelectObject mParent;
 
         private SelectObject mLimitObj;
 
-        //public TimeObject()
-        //{
-        //    brush = Brushes.Black;
-        //    hoverbrush = Brushes.Yellow;
-        //}
-
-        public TimeObject(string n, Point p, Brush b, int i, OBJTYPE t, SelectObject parent)
+        public TimeObject(string n, Point p, int i, OBJTYPE t, SelectObject parent)
         {
             name = n;
             pos = p;
-            brush = b;
+            brush = Brushes.Brown;
             tickIdx = i;
             ObjType = t;
 
             HoverType = OBJTYPE.NONE;
-
-            BoxWidth = 6;
-            BoxHeight = 16;
 
             hoverbrush = Brushes.LimeGreen;
 

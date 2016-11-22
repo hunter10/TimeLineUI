@@ -28,6 +28,7 @@ namespace TimeLineUI
         private Timer timer = new Timer();
 
         private ContextMenu contextMenuEndMark;
+        private ContextMenu contextMenuAddEventObject;
         private ContextMenu contextMenuEventObject;
 
         int s_offsetIdx = -1; // 클릭한 위치에서 시작점 좌측면까지 픽셀 거리 (보디를 구하기 위해)
@@ -114,9 +115,13 @@ namespace TimeLineUI
             contextMenuEndMark.MenuItems[1].Click += new EventHandler(stopAnimationToolStripMenuItem_Click);
             contextMenuEndMark.MenuItems[2].Click += new EventHandler(replayAnimationToolStripMenuItem_Click);
 
+            contextMenuAddEventObject = new ContextMenu();
+            contextMenuAddEventObject.MenuItems.Add(new MenuItem().Text = "Add Event");
+            contextMenuAddEventObject.MenuItems[0].Click += new EventHandler(AddEventToolStripMenuItem_Click);
+            
             contextMenuEventObject = new ContextMenu();
-            contextMenuEventObject.MenuItems.Add(new MenuItem().Text = "Add Event");
-            contextMenuEventObject.MenuItems[0].Click += new EventHandler(AddEventToolStripMenuItem_Click);
+            contextMenuEventObject.MenuItems.Add(new MenuItem().Text = "Delete Event");
+            contextMenuEventObject.MenuItems[0].Click += new EventHandler(DeleteEventToolStripMenuItem_Click);
 
             dGrid_TimeLineObj.MouseClick += new MouseEventHandler(dGrid_TimeLineObj_MouseClick);
             dGrid_TimeLineObj.CellValueChanged += new DataGridViewCellEventHandler(dGrid_TimeLineObj_CellValueChanged);
@@ -345,8 +350,15 @@ namespace TimeLineUI
                 }
                 else
                 {
-                    contextMenuEventObject.Show(picBox_TimeEdit, e.Location);
-                    eventMousePos = e.Location;
+                    if (selectedObj.ObjType == OBJTYPE.EVENT)
+                    {
+                        contextMenuEventObject.Show(picBox_TimeEdit, e.Location);
+                    }
+                    else
+                    {
+                        contextMenuAddEventObject.Show(picBox_TimeEdit, e.Location);
+                        eventMousePos = e.Location;
+                    }
                 }
             }
             else
@@ -849,6 +861,22 @@ namespace TimeLineUI
                 body.GetTimeLineObject().AddEvent(tick, "test", Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, tick, sObj.pos.Y));
             }
         }
+
+
+        private void DeleteEventToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Console.WriteLine("이벤트 삭제~");
+
+            TimeBodyObject obj = GetSelectObjectToTimeBodyObject(selectedObj);
+            obj.GetEventObjectMng().Remove_EventObject(selectedObj.tickIdx, (selectedObj as EventObject).index);
+            obj.GetEventObjectMng().ReCalcIndex(selectedObj.tickIdx);
+
+            if (obj.GetEventObjectMng() != null)
+                obj.GetEventObjectMng().ReCalcPosition(tickWidth, boxGapWidth, selectedObj.pos.Y);
+
+            picBox_TimeEdit.Invalidate();
+        }
+        
 
         private void deleteGroupToolStripMenuItem_Click(object sender, EventArgs e)
         {

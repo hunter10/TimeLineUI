@@ -50,8 +50,8 @@ namespace TimeLineUI
             ObjType = OBJTYPE.BODY;
 
             Point endP = new Point(p.X + (tickWidth * 10), p.Y);
-            sObj = new TimeObject("", p, Brushes.Brown, 0, OBJTYPE.START, this);
-            eObj = new TimeObject("", endP, Brushes.Brown, 10, OBJTYPE.END, this);
+            sObj = new TimeObject("", p, 0, OBJTYPE.START, this);
+            eObj = new TimeObject("", endP, 10, OBJTYPE.END, this);
 
             pos = new Point(sObj.pos.X, sObj.pos.Y);
         }
