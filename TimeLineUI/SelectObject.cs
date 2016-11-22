@@ -27,19 +27,19 @@ namespace TimeLineUI
         public virtual void DrawMark(Graphics g)
         {
             if (HoverType == ObjType)
-                _DrawHoverMark(g, pos, new Size(), hoverbrush);
+                _DrawHoverMark(g, pos, new Size(), hoverbrush, 2);
 
             _DrawMark(g, pos, new Size(), brush);
         }
 
-        protected virtual void _DrawHoverMark(Graphics g, Point p, Size s, Brush brush)
+        protected virtual void _DrawHoverMark(Graphics g, Point p, Size s, Brush brush, int offset)
         {
             Rectangle rect = new Rectangle(p.X,
                                            p.Y,
                                            s.Width,
                                            s.Height);
 
-            g.FillRectangle(brush, Rectangle.Inflate(rect, 2, 2));
+            g.FillRectangle(brush, Rectangle.Inflate(rect, offset, offset));
         }
 
         protected virtual void _DrawMark(Graphics g, Point p, Size s, Brush brush)
@@ -54,6 +54,6 @@ namespace TimeLineUI
 
         public virtual SelectObject CheckBoxPos(Point p) { return this; }
         public virtual bool CheckObjectLimit(Point p) { return true; }
-        public virtual bool CheckPanelBound(Point p, Panel pan) { return true; }
+        public virtual bool CheckPanelBound(Point p, int min, int max, Panel timePan, Panel rulerPan) { return true; }
     }
 }

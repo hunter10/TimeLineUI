@@ -69,6 +69,7 @@
       <DependentUpon>TimeLineUI.cs</DependentUpon>
     </Compile>
     <Compile Include="TimeObject.cs" />
+    <Compile Include="Util.cs" />
     <EmbeddedResource Include="TimeLineUI_Test.resx">
       <DependentUpon>TimeLineUI_Test.cs</DependentUpon>
     </EmbeddedResource>

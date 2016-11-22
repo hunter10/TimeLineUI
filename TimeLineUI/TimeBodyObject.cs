@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace TimeLineUI
 {
@@ -14,9 +15,14 @@ namespace TimeLineUI
 
         private TimeLineObject mParent;
 
-        private EventObjectMng ObjectMng;
+        private EventObjectMng eventMng;
 
         int BoxHeight = 15;
+
+        public EventObjectMng GetEventObjectMng()
+        {
+            return eventMng;
+        }
 
         public void SetTimeLineObject(TimeLineObject obj)
         {
@@ -85,23 +91,27 @@ namespace TimeLineUI
             g.DrawRectangle(pen, rect);
         }
 
-        public void SetEventMng(EventObjectMng mng)
+        public void SetEventMng(EventObjectMng mng, int rTickWidth)
         {
-            ObjectMng = mng;
+            eventMng = mng;
+            eventMng.SetTickWidth(rTickWidth);
         }
 
         public override SelectObject CheckBoxPos(Point p)
         {
             SelectObject obj = sObj.CheckBoxPos(p);
-            if (obj != null) return obj;
+            if (obj != null)
+                return obj;
 
             obj = eObj.CheckBoxPos(p);
-            if (obj != null) return obj;
+            if (obj != null)
+                return obj;
 
-            if (ObjectMng != null)
+            if (eventMng != null)
             {
-                obj = ObjectMng.CheckPos(p);
-                if (obj != null) return obj;
+                obj = eventMng.CheckPos(p);
+                if (obj != null)
+                    return obj;
             }
 
             bool result = false;
@@ -130,6 +140,14 @@ namespace TimeLineUI
             }
         }
 
-        
+        public override bool CheckPanelBound(Point p, int min, int max, Panel timePan, Panel rulerPan)
+        {
+            bool sResult = sObj.CheckPanelBound(p, min, max, timePan, rulerPan);
+            bool eResult = eObj.CheckPanelBound(p, min, max, timePan, rulerPan);
+
+            if (!sResult || !eResult)
+                return false;
+            return true;
+        }
     }
 }

@@ -9,19 +9,27 @@ namespace TimeLineUI
 {
     public class EventObject : SelectObject
     {
-        public int BoxWidth;// = 6;
-        public int BoxHeight;// = 12;
+        static public int BoxWidth = 4;// = 6;
+        static public int BoxHeight = 12;// = 12;
 
         private SelectObject mParent;
 
-        //public EventObject()
-        //{
-        //    brush = Brushes.Green;
-        //    hoverbrush = Brushes.Coral;
+        public int index; // 같은 틱 안에서 구별되기 위한 식별값
 
-        //    HoverType = OBJTYPE.NONE;
-        //    ObjType = OBJTYPE.EVENT;
-        //}
+        public EventObject(int tickIdx, string objName, Point tickPos, SelectObject parent)
+        {
+            name = objName;
+            pos = tickPos;
+            brush = Brushes.Green;
+            this.tickIdx = tickIdx;
+            ObjType = OBJTYPE.EVENT;
+
+            HoverType = OBJTYPE.NONE;
+            
+            hoverbrush = Brushes.Coral;
+
+            mParent = parent;
+        }
 
         public EventObject(string n, Point p, Brush b, int i, OBJTYPE t, SelectObject parent)
         {
@@ -30,11 +38,8 @@ namespace TimeLineUI
             brush = b;
             tickIdx = i;
             ObjType = t;
-
+            
             HoverType = OBJTYPE.NONE;
-
-            BoxWidth = 4;
-            BoxHeight = 12;
 
             hoverbrush = Brushes.Coral;
 
@@ -46,6 +51,11 @@ namespace TimeLineUI
             return mParent;
         }
 
+        public void DrawName(Graphics g)
+        {
+            g.DrawString(name, new Font("Arial", 8), Brushes.Black, new Point(pos.X + 5, pos.Y - 7));
+        }
+
         public override void DrawMark(Graphics g)
         {
             if (HoverType == ObjType)
@@ -53,7 +63,10 @@ namespace TimeLineUI
                 _DrawHoverMark(g,
                                new Point(pos.X, pos.Y),
                                new Size(BoxWidth, BoxHeight),
-                               hoverbrush);
+                               hoverbrush,
+                               1);
+
+                DrawName(g);
             }
 
             _DrawMark(g, 
@@ -86,6 +99,7 @@ namespace TimeLineUI
             {
                 //if (MouseEnterNotice != null)
                 //    MouseEnterNotice(this, EventArgs.Empty);
+                
                 return this;
             }
             else
@@ -93,6 +107,7 @@ namespace TimeLineUI
                 HoverType = OBJTYPE.NONE;
                 //if (MouseLeaveNotice != null)
                 //    MouseLeaveNotice(this, EventArgs.Empty);
+
                 return null;
             }
         }

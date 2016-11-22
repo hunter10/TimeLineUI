@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace TimeLineUI
 {
@@ -57,7 +58,8 @@ namespace TimeLineUI
                 _DrawHoverMark(g,
                                new Point(pos.X - 3, pos.Y - 2),
                                new Size(BoxWidth, BoxHeight + 4),
-                               hoverbrush);
+                               hoverbrush,
+                               2);
             }
 
             _DrawMark(g,
@@ -101,31 +103,64 @@ namespace TimeLineUI
             }
         }
 
+        public override bool CheckPanelBound(Point p, int min, int max, Panel timePan, Panel rulerPan)
+        {
+            // 가장자리 스크롤되기 위한 조건 
+            int nPanelRight = timePan.Width + timePan.HorizontalScroll.Value;
+            int nPanelLeft = timePan.HorizontalScroll.Value;
+
+            // 오른쪽 면 처리
+            {
+                // 맨 오른쪽 오버조건
+                if (p.X > max) return false;
+
+                // 오브젝트가 오른쪽 가장자리에 닿았을때
+                if (p.X > nPanelRight)
+                {
+                    int x = (p.X - timePan.Width);
+                    if (x >= timePan.HorizontalScroll.Maximum)
+                        x = timePan.HorizontalScroll.Maximum;
+
+                    timePan.HorizontalScroll.Value = x;
+                    rulerPan.AutoScrollPosition = new Point(rulerPan.HorizontalScroll.Value, rulerPan.VerticalScroll.Value);
+                }
+            }
+            
+            // 왼쪽면 처리
+            {
+                // 맨 왼쪽 오버조건
+                if (p.X <= min) return false;
+
+                // 오브젝트가 왼쪽 가장자리에 닿았을때
+                if (p.X < nPanelLeft)
+                {
+                    int x = p.X;
+                    if (x <= timePan.HorizontalScroll.Minimum)
+                        x = timePan.HorizontalScroll.Minimum;
+
+                    timePan.HorizontalScroll.Value = x;
+                    rulerPan.AutoScrollPosition = new Point(rulerPan.HorizontalScroll.Value, rulerPan.VerticalScroll.Value);
+                }
+            }
+
+            return true;
+        }
+
         // 오른쪽 아이콘이 왼쪽 아이콘/ 또는 그 반대의 경우로 넘어가는지 체크
         public override bool CheckObjectLimit(Point p)
         {
-            /*
-            int iconWidth = EndIconWidth;
-            int iconHeight = EndIconHeight;
-
-
-            int nERight = 0;
-            int nSLeft = 0;
-            OBJTYPE type = ObjType;
+            TimeBodyObject body = (mParent as TimeBodyObject);
 
             if (ObjType == OBJTYPE.END)
             {
-                nSLeft = SPos.X;
+                int nSLeft = body.GetEndObject(OBJTYPE.START).pos.X;
                 if (p.X <= nSLeft) return false;
             }
             else if (ObjType == OBJTYPE.START)
             {
-                nERight = EPos.X + iconWidth;
-                if (p.X >= nERight) return false; // 시간 기준이 각 아이콘의 우측기준인데 끝점은 오른쪽면이 기준임.
+                int nERight = body.GetEndObject(OBJTYPE.END).pos.X;
+                if (p.X >= nERight) return false; 
             }
-            //Console.WriteLine("nSRight:{0}, nSLeft:{1} / nERight:{2}, nELeft:{3}", nSRight, nSLeft, nERight, nELeft);
-            */
-
 
             return true;
         }
