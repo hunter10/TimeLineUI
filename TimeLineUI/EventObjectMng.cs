@@ -63,8 +63,6 @@ namespace TimeLineUI
                 val.pos = new Point(x, y);
                 val.index = (dicEvents[key]).Count;
 
-                Console.WriteLine("0 리스트 갯수 {0}", (dicEvents[key]).Count);
-
                 (dicEvents[key]).Add(val);
 
                 //Console.WriteLine("키:{0}, 이벤트 갯수:{1}", key, (dicEvents[key]).Count);
