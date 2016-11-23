@@ -144,12 +144,12 @@ namespace TimeLineUI
 
             if (ObjType == OBJTYPE.END)
             {
-                int nSLeft = body.GetEndObject(OBJTYPE.START).pos.X;
+                int nSLeft = body.GetStartObj().pos.X;
                 if (p.X <= nSLeft) return false;
             }
             else if (ObjType == OBJTYPE.START)
             {
-                int nERight = body.GetEndObject(OBJTYPE.END).pos.X;
+                int nERight = body.GetEndObj().pos.X;
                 if (p.X >= nERight) return false; 
             }
 

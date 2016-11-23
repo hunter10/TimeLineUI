@@ -34,7 +34,17 @@ namespace TimeLineUI
             return mParent;
         }
 
-        public TimeObject GetEndObject(OBJTYPE type)
+        public TimeObject GetStartObj()
+        {
+            return GetChildObject(OBJTYPE.START);
+        }
+
+        public TimeObject GetEndObj()
+        {
+            return GetChildObject(OBJTYPE.END);
+        }
+
+        public TimeObject GetChildObject(OBJTYPE type)
         {
             if (type == OBJTYPE.START)
                 return sObj;

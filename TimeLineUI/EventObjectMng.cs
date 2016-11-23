@@ -23,6 +23,7 @@ namespace TimeLineUI
 
         private int nTickWidth = 0;
 
+        // 이 키값은 절대값이 아니라 Bodyd에서 얼마나 떨어졌는지 계산된 오프셋 값임.
         private SortedDictionary<int, List<EventObject>> dicEvents = new SortedDictionary<int, List<EventObject>>();
 
         public void SetTickWidth(int rWidth)
@@ -52,29 +53,33 @@ namespace TimeLineUI
             }
         }
 
-
-
-        public void Add_EventObject(int key, Point tickPos, EventObject val)
+        public void Add_EventObject(int tickIdx, int startOffset, Point tickPos, EventObject val)
         {
-            if (dicEvents.ContainsKey(key))
+            if (dicEvents.ContainsKey(startOffset))
             {
-                int x = tickPos.X + (nEventGap * (dicEvents[key]).Count);
+                int x = tickPos.X + (nEventGap * (dicEvents[startOffset]).Count);
                 int y = tickPos.Y;
                 val.pos = new Point(x, y);
-                val.index = (dicEvents[key]).Count;
-
-                (dicEvents[key]).Add(val);
-
+                val.index = (dicEvents[startOffset]).Count;
+                val.tickIdx = tickIdx;
+                val.offsetTick = startOffset;
+                
+                (dicEvents[startOffset]).Add(val);
                 //Console.WriteLine("키:{0}, 이벤트 갯수:{1}", key, (dicEvents[key]).Count);
             }
             else
             {
                 List<EventObject> temp = new List<EventObject>();
 
+                val.pos = tickPos;
                 val.index = 0;
+                val.tickIdx = tickIdx;
+                val.offsetTick = startOffset;
 
                 temp.Add(val);
-                dicEvents.Add(key, temp);
+
+                //dicEvents.Add(key, temp);
+                dicEvents.Add(startOffset, temp);
             }
         }
 
@@ -102,14 +107,6 @@ namespace TimeLineUI
         {
             foreach (KeyValuePair<int, List<EventObject>> obj in dicEvents)
             {
-                //foreach (EventObject lstObj in obj.Value)
-                //{
-                //    lstObj.DrawMark(g);
-                //}
-
-
-
-                
                 EVENTDRAWSTATE resultState = CheckDrawEvent(obj.Value.Count, EventObject.BoxWidth);  
 
                 if (resultState == EVENTDRAWSTATE.OK)
@@ -155,6 +152,25 @@ namespace TimeLineUI
             return EVENTDRAWSTATE.OK;
         }
 
+        
+        public void MoveProcess(int startTickKey, int rTickWidth, int rStartGap, int yPos)
+        {
+            //Console.WriteLine("startTickKey {0}", startTickKey);
+            
+            // 각 이벤트 오브젝트의 틱값도 바뀌어야 함.
+            foreach (var obj in dicEvents)
+            {
+                foreach (var lstObj in obj.Value)
+                {
+                    int newTick = startTickKey + lstObj.offsetTick;
+                    lstObj.tickIdx = newTick;
+                }
+            }
+
+            // 각 이벤트 틱의 Pos만 바뀌면 됨
+            ReCalcPosition(rTickWidth, rStartGap, yPos);
+        }
+
         public void Remove_EventObject(int key, int index)
         {
             if (dicEvents.ContainsKey(key))
@@ -171,7 +187,8 @@ namespace TimeLineUI
         {
             if (!dicEvents.ContainsKey(key))
             {
-                Console.WriteLine("그런 키 없음. {0}", key);
+                //Console.WriteLine("그런 키 없음. {0}", key);
+                return;
             }
             else
             {

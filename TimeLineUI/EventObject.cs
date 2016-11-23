@@ -14,33 +14,19 @@ namespace TimeLineUI
 
         private SelectObject mParent;
 
+        public int offsetTick; // 시작틱에서부터 얼마 떨어져 있는지 오프셋값
         public int index; // 같은 틱 안에서 구별되기 위한 식별값 - 고유값 아님 이동/삭제시 변경됨 주의바람.
 
-        public EventObject(int tickIdx, string objName, Point tickPos, SelectObject parent)
+        public EventObject(int tickIdx, int startOffset, string objName, Point tickPos, SelectObject parent)
         {
             name = objName;
             pos = tickPos;
             brush = Brushes.Green;
-            this.tickIdx = tickIdx;
+            this.tickIdx = tickIdx;         // 스크립트와 연관
+            offsetTick = startOffset;       // 실제 드로잉시 - 시작점에서 얼마 떨어져 있는지
+
             ObjType = OBJTYPE.EVENT;
-
             HoverType = OBJTYPE.NONE;
-            
-            hoverbrush = Brushes.Coral;
-
-            mParent = parent;
-        }
-
-        public EventObject(string n, Point p, Brush b, int i, OBJTYPE t, SelectObject parent)
-        {
-            name = n;
-            pos = p;
-            brush = b;
-            tickIdx = i;
-            ObjType = t;
-            
-            HoverType = OBJTYPE.NONE;
-
             hoverbrush = Brushes.Coral;
 
             mParent = parent;

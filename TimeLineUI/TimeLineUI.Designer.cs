@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TimeLineUI));
             this.dGrid_TimeLineObj = new TimeLineUI.TimeLineDataGridView();
+            this.Group = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.name = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Itemlock = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.itemView = new System.Windows.Forms.DataGridViewCheckBoxColumn();
@@ -75,6 +76,7 @@
             this.dGrid_TimeLineObj.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dGrid_TimeLineObj.ColumnHeadersVisible = false;
             this.dGrid_TimeLineObj.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Group,
             this.name,
             this.Itemlock,
             this.itemView});
@@ -86,12 +88,17 @@
             this.dGrid_TimeLineObj.Size = new System.Drawing.Size(353, 202);
             this.dGrid_TimeLineObj.TabIndex = 1;
             // 
+            // Group
+            // 
+            this.Group.HeaderText = "Group";
+            this.Group.Name = "Group";
+            this.Group.Width = 25;
+            // 
             // name
             // 
-            this.name.Frozen = true;
             this.name.HeaderText = "Name";
             this.name.Name = "name";
-            this.name.Width = 250;
+            this.name.Width = 225;
             // 
             // Itemlock
             // 
@@ -359,11 +366,12 @@
         private System.Windows.Forms.Panel panel_Right;
         private System.Windows.Forms.Panel panel_Total;
         private System.Windows.Forms.Panel panel_Left;
+        private System.Windows.Forms.TrackBar trackBar1;
+        private System.Windows.Forms.Label lbZoomRatio;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Group;
         private System.Windows.Forms.DataGridViewTextBoxColumn name;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Itemlock;
         private System.Windows.Forms.DataGridViewCheckBoxColumn itemView;
-        private System.Windows.Forms.TrackBar trackBar1;
-        private System.Windows.Forms.Label lbZoomRatio;
 
         private class TimeLineDataGridView : global::TimeLineUI.TimeLineDataGridView
         {

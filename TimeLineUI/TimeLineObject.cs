@@ -27,6 +27,7 @@ namespace TimeLineUI
 
     class TimeLineObject
     {
+        public int Group { get; set; }      // 그룹 인덱스
         public string Name { get; set; }
         public bool Lock { get; set; }
         public bool View { get; set; }
@@ -43,18 +44,10 @@ namespace TimeLineUI
         public EventObjectMng eventMng = new EventObjectMng();
 
 
-        public void AddEvent(int tickIdx, string objName, Point tickPos)
+        public void AddEvent(int tick, int tickOffset, string objName, Point tickPos)
         {
-            // objPos를 다시 계산해야 함
-            
-            // 메인 좌표(objPos) + (eventgap * 이벤트갯수)
-
-            //EventObject obj = new EventObject(objName, tickPos, Brushes.Green, tickIdx, OBJTYPE.EVENT, bodyObj);
-            EventObject obj = new EventObject(tickIdx, objName, tickPos, bodyObj);
-            eventMng.Add_EventObject(tickIdx, tickPos, obj);
-
-            if(bodyObj.GetEventObjectMng() == null)
-                bodyObj.SetEventMng(eventMng, m_tickWidth);
+            EventObject obj = new EventObject(tick, tickOffset, objName, tickPos, bodyObj);
+            eventMng.Add_EventObject(tick, tickOffset, tickPos, obj);
         }
 
         public TimeLineObject(Point point1, int tickWidth, string name)
@@ -65,6 +58,9 @@ namespace TimeLineUI
             bodyObj = new TimeBodyObject(point1, tickWidth);
             bodyObj.name = name;
             bodyObj.SetTimeLineObject(this);
+
+            if (bodyObj.GetEventObjectMng() == null)
+                bodyObj.SetEventMng(eventMng, m_tickWidth);
         }
         
         public void DrawName(Graphics g, SelectObject endObj)
@@ -80,7 +76,7 @@ namespace TimeLineUI
         public void DrawMarks(Graphics g)
         {
             bodyObj.DrawMark(g);
-            DrawName(g, bodyObj.GetEndObject(OBJTYPE.END));
+            DrawName(g, bodyObj.GetEndObj());
             eventMng.DrawEvents(g);
         }
     }
