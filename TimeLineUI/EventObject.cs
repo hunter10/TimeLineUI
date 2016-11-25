@@ -17,9 +17,34 @@ namespace TimeLineUI
         public int offsetTick; // 시작틱에서부터 얼마 떨어져 있는지 오프셋값
         public int index; // 같은 틱 안에서 구별되기 위한 식별값 - 고유값 아님 이동/삭제시 변경됨 주의바람.
 
-        public EventObject(int tickIdx, int startOffset, string objName, Point tickPos, SelectObject parent)
+        public int uniqueID { get; set; }               // 이 이벤트가 속한 오브젝트 아이디
+        public int layerdepth_index { get; set; }        
+
+        // 이벤트 이름, 유니크 번호, 레이어인덱스, 나머지 속성값
+        public EventObject(string eventName, int r_uniqueID, int r_layerdepth_index, string[] rData)
         {
-            name = objName;
+            uniqueID = r_uniqueID;
+            layerdepth_index = r_layerdepth_index;
+
+            name = eventName;
+            pos = Point.Empty;
+            brush = Brushes.Green;
+            tickIdx = -1;
+            offsetTick = -1;
+
+            ObjType = OBJTYPE.EVENT;
+            HoverType = OBJTYPE.NONE;
+            hoverbrush = Brushes.Coral;
+
+            mParent = null;
+        }
+
+        public EventObject(int tickIdx, int startOffset, string eventName, Point tickPos, SelectObject parent)
+        {
+            uniqueID = 0;
+            layerdepth_index = 0;
+
+            name = eventName;
             pos = tickPos;
             brush = Brushes.Green;
             this.tickIdx = tickIdx;         // 스크립트와 연관

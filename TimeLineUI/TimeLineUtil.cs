@@ -7,7 +7,7 @@ using System.Drawing;
 
 namespace TimeLineUI
 {
-    public class Util
+    public class TimeLineUtil
     {
         // 틱 인덱스로 좌표 얻어내기
         public static Point ConvTickIdxToPoint(int rTickWidth, int rStartGap, int idx, int y = 0)

@@ -83,6 +83,7 @@
             this.dGrid_TimeLineObj.Location = new System.Drawing.Point(0, 49);
             this.dGrid_TimeLineObj.MultiSelect = false;
             this.dGrid_TimeLineObj.Name = "dGrid_TimeLineObj";
+            this.dGrid_TimeLineObj.ReadOnly = true;
             this.dGrid_TimeLineObj.RowHeadersVisible = false;
             this.dGrid_TimeLineObj.RowTemplate.Height = 23;
             this.dGrid_TimeLineObj.Size = new System.Drawing.Size(353, 202);
@@ -92,24 +93,28 @@
             // 
             this.Group.HeaderText = "Group";
             this.Group.Name = "Group";
+            this.Group.ReadOnly = true;
             this.Group.Width = 25;
             // 
             // name
             // 
             this.name.HeaderText = "Name";
             this.name.Name = "name";
+            this.name.ReadOnly = true;
             this.name.Width = 225;
             // 
             // Itemlock
             // 
             this.Itemlock.HeaderText = "Lock";
             this.Itemlock.Name = "Itemlock";
+            this.Itemlock.ReadOnly = true;
             this.Itemlock.Width = 50;
             // 
             // itemView
             // 
             this.itemView.HeaderText = "View";
             this.itemView.Name = "itemView";
+            this.itemView.ReadOnly = true;
             this.itemView.Width = 50;
             // 
             // panel2

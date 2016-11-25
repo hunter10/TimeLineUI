@@ -27,6 +27,9 @@ namespace TimeLineUI
 
     class TimeLineObject
     {
+        public int uniqueID { get; set; }           // AppBusObject의 uniqueID와 같음 
+        public int layerdepth_index { get; set; }   // AppBusObject의 layerdepth_index와 같음 
+
         public int Group { get; set; }      // 그룹 인덱스
         public string Name { get; set; }
         public bool Lock { get; set; }
@@ -47,11 +50,14 @@ namespace TimeLineUI
         public void AddEvent(int tick, int tickOffset, string objName, Point tickPos)
         {
             EventObject obj = new EventObject(tick, tickOffset, objName, tickPos, bodyObj);
-            eventMng.Add_EventObject(tick, tickOffset, tickPos, obj);
+            eventMng.Add_EventObject(obj);
         }
 
-        public TimeLineObject(Point point1, int tickWidth, string name)
+        public TimeLineObject(Point point1, int tickWidth, string name, int r_uniqueID, int r_layerdepthIndex)
         {
+            uniqueID = r_uniqueID;
+            layerdepth_index = r_layerdepthIndex;
+
             m_tickWidth = tickWidth;
             aniType = ANITYPE.STOP_AT_END;
 
@@ -62,7 +68,25 @@ namespace TimeLineUI
             if (bodyObj.GetEventObjectMng() == null)
                 bodyObj.SetEventMng(eventMng, m_tickWidth);
         }
-        
+
+        /*
+        public TimeLineObject(Point point1, int tickWidth, string name)
+        {
+            uniqueID = 0;
+            layerdepth_index = 0;
+
+            m_tickWidth = tickWidth;
+            aniType = ANITYPE.STOP_AT_END;
+
+            bodyObj = new TimeBodyObject(point1, tickWidth);
+            bodyObj.name = name;
+            bodyObj.SetTimeLineObject(this);
+
+            if (bodyObj.GetEventObjectMng() == null)
+                bodyObj.SetEventMng(eventMng, m_tickWidth);
+        }
+        */
+
         public void DrawName(Graphics g, SelectObject endObj)
         {
             g.DrawString(Name, new Font("Arial", 8), Brushes.Black, new Point(endObj.pos.X + nameGap, endObj.pos.Y - 1));

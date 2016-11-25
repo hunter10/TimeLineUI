@@ -10,6 +10,14 @@ using System.Windows.Forms;
 
 namespace TimeLineUI
 {
+    public enum GRIDCONTROL_COLUMN 
+    {
+        GROUP,
+        NAME,
+        LOCK,
+        VIEW
+    }
+
     public partial class TimeLineUI : UserControl
     {
         private List<TimeLineObject> lstTimeLineObj = new List<TimeLineObject>();
@@ -34,7 +42,7 @@ namespace TimeLineUI
         int s_offsetIdx = -1; // 클릭한 위치에서 시작점 좌측면까지 픽셀 거리 (보디를 구하기 위해)
         int e_offsetIdx = -1; // 클릭한 위치에서 끝점 우측면까지 픽셀 거리 (보디를 구하기 위해)
 
-        const int dataGridViewColumn0_Width = 250;  // 스크롤바 발생시 이 값에서 빼서 쓴다.
+        int dataGridViewColumnName_Width = 0;  // 스크롤바 발생시 이 값에서 빼서 쓴다.
 
 
         // 2틱당 1프레임
@@ -128,6 +136,7 @@ namespace TimeLineUI
             dGrid_TimeLineObj.DataSource = null;
             dGrid_TimeLineObj.Rows.Clear();
             dGrid_TimeLineObj.AllowUserToAddRows = false;
+            dataGridViewColumnName_Width = dGrid_TimeLineObj.Columns[(int)GRIDCONTROL_COLUMN.NAME].Width;
 
             picBox_Ruler.Height = panel_Ruler.Height;
             picBox_Ruler.Paint += new PaintEventHandler(picBox_Ruler_Paint);
@@ -212,6 +221,21 @@ namespace TimeLineUI
 
             Console.WriteLine("0 picBox_TimeEdit.Width:{0}, totalTickCount:{1}, tickWidth:{2}", picBox_TimeEdit.Width, totalTickCount, tickWidth);
 
+        }
+
+        public void ScriptParser(string[] script_text, int LayerCount)
+        {
+            EventObjectMng tempMng = new EventObjectMng();
+            List<EventObject> tempObjects = tempMng.ScriptParser(script_text, LayerCount);
+
+            // 이프로젝트에서만 작동되는 코드
+            // 1. 유니크번호로 오브젝트 찾기 - 없으면 생성 (생성시 해당 유니크번호 할당)
+
+            foreach(EventObject obj in tempObjects)
+            {
+                // obj.tickIdx
+                // AddTimeObj();
+            }
         }
 
         private void HorizontalTickInit(int rulerWidth)
@@ -355,7 +379,7 @@ namespace TimeLineUI
             else
             {
                 // 해당라인 전체를 클릭영역으로....
-                selectRowIndex = Util.ConvPointToRowIndex(dGrid_TimeLineObj.RowTemplate.Height, timeEditPicBox_ObjectGap, new Point(e.X, e.Y));
+                selectRowIndex = TimeLineUtil.ConvPointToRowIndex(dGrid_TimeLineObj.RowTemplate.Height, timeEditPicBox_ObjectGap, new Point(e.X, e.Y));
                 if (selectRowIndex >= lstTimeLineObj.Count)
                 {
                     selectRowIndex = -1;
@@ -395,7 +419,7 @@ namespace TimeLineUI
 
                 if (selectedObj.ObjType == OBJTYPE.BODY)
                 {
-                    int convIdx = Util.ConvPointToTickIdx(tickWidth, boxGapWidth, new Point(e.X, e.Y));
+                    int convIdx = TimeLineUtil.ConvPointToTickIdx(tickWidth, boxGapWidth, new Point(e.X, e.Y));
 
                     int stick = (selectedObj as TimeBodyObject).GetStartObj().tickIdx;
                     int etick = (selectedObj as TimeBodyObject).GetEndObj().tickIdx;
@@ -419,9 +443,9 @@ namespace TimeLineUI
         private void picBox_Ruler_MouseDown(object sender, MouseEventArgs e)
         {
             // 세로 타임라인 조정
-            currIdx = Util.ConvPointToTickIdx(tickWidth, boxGapWidth, e.Location);
+            currIdx = TimeLineUtil.ConvPointToTickIdx(tickWidth, boxGapWidth, e.Location);
 
-            MoveToTimeLine(Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, currIdx).X);
+            MoveToTimeLine(TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, currIdx).X);
 
             // 해당 틱으로 이동과 스크롤처리
             MoveToTickIdxAndAutoScroll(currIdx);
@@ -432,18 +456,18 @@ namespace TimeLineUI
         
         private void StarTimeLineProcess(int tickIndex)
         {
-            startPTimeLine_picboxTimeEdit.SPos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, startPTimeLine_picboxTimeEdit.SPos.Y);
-            startPTimeLine_picboxTimeEdit.EPos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, startPTimeLine_picboxTimeEdit.EPos.Y);
-            startPTimeLine_picboxRuler.SPos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, startPTimeLine_picboxRuler.SPos.Y);
-            startPTimeLine_picboxRuler.EPos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, startPTimeLine_picboxRuler.EPos.Y);
+            startPTimeLine_picboxTimeEdit.SPos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, startPTimeLine_picboxTimeEdit.SPos.Y);
+            startPTimeLine_picboxTimeEdit.EPos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, startPTimeLine_picboxTimeEdit.EPos.Y);
+            startPTimeLine_picboxRuler.SPos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, startPTimeLine_picboxRuler.SPos.Y);
+            startPTimeLine_picboxRuler.EPos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, startPTimeLine_picboxRuler.EPos.Y);
         }
 
         private void EndTimeLineProcess(int tickIndex)
         {
-            endPTimeLine_picboxTimeEdit.SPos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, endPTimeLine_picboxTimeEdit.SPos.Y);
-            endPTimeLine_picboxTimeEdit.EPos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, endPTimeLine_picboxTimeEdit.EPos.Y);
-            endPTimeLine_picboxRuler.SPos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, endPTimeLine_picboxRuler.SPos.Y);
-            endPTimeLine_picboxRuler.EPos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, endPTimeLine_picboxRuler.EPos.Y);
+            endPTimeLine_picboxTimeEdit.SPos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, endPTimeLine_picboxTimeEdit.SPos.Y);
+            endPTimeLine_picboxTimeEdit.EPos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, endPTimeLine_picboxTimeEdit.EPos.Y);
+            endPTimeLine_picboxRuler.SPos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, endPTimeLine_picboxRuler.SPos.Y);
+            endPTimeLine_picboxRuler.EPos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tickIndex, endPTimeLine_picboxRuler.EPos.Y);
         }
 
         private void picBox_TimeEdit_MouseMove(object sender, MouseEventArgs e)
@@ -461,8 +485,8 @@ namespace TimeLineUI
 
                 if (selectedObj.ObjType == OBJTYPE.START || selectedObj.ObjType == OBJTYPE.END) // 시작점, 끝점 움직이기
                 {
-                    int convIdx = Util.ConvPointToTickIdx(tickWidth, boxGapWidth, new Point(e.X, e.Y));
-                    selectedObj.pos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, convIdx, selectedObj.pos.Y);
+                    int convIdx = TimeLineUtil.ConvPointToTickIdx(tickWidth, boxGapWidth, new Point(e.X, e.Y));
+                    selectedObj.pos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, convIdx, selectedObj.pos.Y);
                     selectedObj.tickIdx = convIdx;
 
                     TimeBodyObject body = GetSelectObjectToTimeBodyObject(selectedObj);
@@ -488,7 +512,7 @@ namespace TimeLineUI
                 }
                 else if(selectedObj.ObjType == OBJTYPE.BODY)
                 {
-                    int convIdx = Util.ConvPointToTickIdx(tickWidth, boxGapWidth, new Point(e.X, e.Y));
+                    int convIdx = TimeLineUtil.ConvPointToTickIdx(tickWidth, boxGapWidth, new Point(e.X, e.Y));
 
                     int convSIdx = convIdx - s_offsetIdx;
                     int convEIdx = convIdx + e_offsetIdx;
@@ -497,8 +521,8 @@ namespace TimeLineUI
                     TimeObject sObj = body.GetStartObj();
                     TimeObject eObj = body.GetEndObj();
 
-                    Point convSPos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, convSIdx, eObj.pos.Y);
-                    Point convEPos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, convEIdx, eObj.pos.Y);
+                    Point convSPos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, convSIdx, eObj.pos.Y);
+                    Point convEPos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, convEIdx, eObj.pos.Y);
 
                     sObj.pos = convSPos;
                     eObj.pos = convEPos;
@@ -518,8 +542,8 @@ namespace TimeLineUI
                 else if (selectedObj.ObjType == OBJTYPE.EVENT ) // 이벤트 움직이기
                 {
                     TimeBodyObject body = GetSelectObjectToTimeBodyObject(selectedObj);
-                    int convIdx = Util.ConvPointToTickIdx(tickWidth, boxGapWidth, new Point(e.X, e.Y));
-                    selectedObj.pos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, convIdx, selectedObj.pos.Y);
+                    int convIdx = TimeLineUtil.ConvPointToTickIdx(tickWidth, boxGapWidth, new Point(e.X, e.Y));
+                    selectedObj.pos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, convIdx, selectedObj.pos.Y);
 
                     int oldTickIdx = selectedObj.tickIdx;
                     int oldOffset = (selectedObj as EventObject).offsetTick;
@@ -530,14 +554,18 @@ namespace TimeLineUI
 
                         int newOffset = convIdx - body.GetStartObj().tickIdx;
 
+                        (selectedObj as EventObject).offsetTick = newOffset;
+
                         body.GetEventObjectMng().Remove_EventObject(oldOffset, (selectedObj as EventObject).index);
                         body.GetEventObjectMng().ReCalcIndex(oldOffset);
-                        body.GetEventObjectMng().Add_EventObject(convIdx, newOffset, selectedObj.pos, (selectedObj as EventObject));
+
+                        // body.GetEventObjectMng().Add_EventObject(convIdx, newOffset, selectedObj.pos, (selectedObj as EventObject));
+                        body.GetEventObjectMng().Add_EventObject(selectedObj as EventObject);
 
                         //Console.WriteLine("이벤트 총수:{0}", obj.GetEventObjectMng().GetCount());
                         //obj.GetEventObjectMng().TotalPrint();
                     }
-                    
+
                 }
 
                 picBox_Ruler.Invalidate();
@@ -671,7 +699,7 @@ namespace TimeLineUI
             currIdx = maxIdx;
             currOffsetIdx = maxOffsetIdx_FromZero;
 
-            Point pos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, maxIdx);
+            Point pos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, maxIdx);
 
             nowTimeLine_picboxTimeEdit.SPos = new Point(pos.X, nowTimeLine_picboxTimeEdit.SPos.Y);
             nowTimeLine_picboxTimeEdit.EPos = new Point(pos.X, nowTimeLine_picboxTimeEdit.EPos.Y);
@@ -809,7 +837,7 @@ namespace TimeLineUI
             }
             else if(e.Button == MouseButtons.Left)
             {
-                if (info.ColumnIndex == 1 || info.ColumnIndex == 2)
+                if (info.ColumnIndex == (int)GRIDCONTROL_COLUMN.LOCK || info.ColumnIndex == (int)GRIDCONTROL_COLUMN.VIEW)
                 {
                     DataGridViewCheckBoxCell cell = dGrid_TimeLineObj.CurrentCell as DataGridViewCheckBoxCell;
                     if (cell == null)
@@ -828,13 +856,13 @@ namespace TimeLineUI
                         else
                             cell.Value = true;
 
-                        if (info.ColumnIndex == 1) // Lock
+                        if (info.ColumnIndex == (int)GRIDCONTROL_COLUMN.LOCK) // Lock
                         {
                             lstTimeLineObj[info.RowIndex].Lock = (Boolean)cell.Value;
 
                         }
 
-                        if (info.ColumnIndex == 2) // View
+                        if (info.ColumnIndex == (int)GRIDCONTROL_COLUMN.VIEW) // View
                         {
                             lstTimeLineObj[info.RowIndex].View = (Boolean)cell.Value;
 
@@ -855,7 +883,7 @@ namespace TimeLineUI
             if (e.RowIndex == -1)
                 return;
 
-            if (e.ColumnIndex == 0)
+            if (e.ColumnIndex == (int)GRIDCONTROL_COLUMN.NAME)
             {
                 DataGridViewTextBoxCell cell = dGrid_TimeLineObj.Rows[e.RowIndex].Cells[e.ColumnIndex] as DataGridViewTextBoxCell;
                 lstTimeLineObj[e.RowIndex].Name = (String)cell.Value;
@@ -888,9 +916,9 @@ namespace TimeLineUI
             //Console.WriteLine("dGrid_TimeLineObj.CurrentCell.RowIndex : {0}", dGrid_TimeLineObj.CurrentCell.RowIndex);
             dGrid_TimeLineObj.Rows.RemoveAt(dGrid_TimeLineObj.CurrentCell.RowIndex);
             if (dGrid_TimeLineObj.VerticalScrollbarVisible)
-                dGrid_TimeLineObj.Columns[0].Width = dataGridViewColumn0_Width - SystemInformation.VerticalScrollBarWidth;
+                dGrid_TimeLineObj.Columns[(int)GRIDCONTROL_COLUMN.NAME].Width = dataGridViewColumnName_Width - SystemInformation.VerticalScrollBarWidth;
             else
-                dGrid_TimeLineObj.Columns[0].Width = dataGridViewColumn0_Width;
+                dGrid_TimeLineObj.Columns[(int)GRIDCONTROL_COLUMN.NAME].Width = dataGridViewColumnName_Width;
 
             // 타임 에디터 갱신처리
             int tempHeight = 0;
@@ -951,12 +979,12 @@ namespace TimeLineUI
             TimeBodyObject body = GetSelectObjectToTimeBodyObject(selectedObj);
             if (body != null)
             {
-                int tick = Util.ConvPointToTickIdx(tickWidth, boxGapWidth, eventMousePos);
+                int tick = TimeLineUtil.ConvPointToTickIdx(tickWidth, boxGapWidth, eventMousePos);
                 TimeObject sObj = body.GetStartObj();
 
                 int offsettick = tick - sObj.tickIdx;
                 
-                body.GetTimeLineObject().AddEvent(tick, offsettick, "test", Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, tick, sObj.pos.Y));
+                body.GetTimeLineObject().AddEvent(tick, offsettick, "test", TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tick, sObj.pos.Y));
             }
         }
 
@@ -1009,15 +1037,14 @@ namespace TimeLineUI
             //Console.WriteLine("1 MoveToTickIdxAndAutoScroll maxIdx {0}, maxIdxPerPanel {1}, currOffsetIdx {2}, offsetStartIdx_FromZero:{3}", maxIdx, maxIdxPerPanel, currOffsetIdx, offsetStartIdx_FromZero);
         }
 
-        public void AddTimeObj(string r_name, bool r_lock = false, bool r_view = true, int r_GroupIdx = 0)
+        public void AddTimeObj(int r_uniqueID, int r_layerdepthIndex, string r_name, bool r_lock = false, bool r_view = true, int r_GroupIdx = 0)
         {
             if (lstTimeLineObj.Count > 255)
                 MessageBox.Show("작업 제한값을 넘었습니다. (255개)");
 
             int y = (lstTimeLineObj.Count * dGrid_TimeLineObj.RowTemplate.Height) + timeEditPicBox_ObjectGap + timeEditPicBoxGapHeight;
 
-            TimeLineObject obj = new TimeLineObject(new Point(boxGapWidth, y), tickWidth, r_name);
-
+            TimeLineObject obj = new TimeLineObject(new Point(boxGapWidth, y), tickWidth, r_name, r_uniqueID, r_layerdepthIndex);
             obj.Group = r_GroupIdx;
             obj.Name = r_name;
             obj.Lock = r_lock;
@@ -1033,9 +1060,9 @@ namespace TimeLineUI
             dGrid_TimeLineObj.Rows.Add(strGrp, obj.Name, obj.Lock, obj.View);
             dGrid_TimeLineObjHeight += dGrid_TimeLineObj.RowTemplate.Height;
             if (dGrid_TimeLineObj.VerticalScrollbarVisible)
-                dGrid_TimeLineObj.Columns[1].Width = dataGridViewColumn0_Width - SystemInformation.VerticalScrollBarWidth;
+                dGrid_TimeLineObj.Columns[(int)GRIDCONTROL_COLUMN.NAME].Width = dataGridViewColumnName_Width - SystemInformation.VerticalScrollBarWidth;
             else
-                dGrid_TimeLineObj.Columns[1].Width = dataGridViewColumn0_Width;
+                dGrid_TimeLineObj.Columns[(int)GRIDCONTROL_COLUMN.NAME].Width = dataGridViewColumnName_Width;
 
             //Console.WriteLine("1 dGrid_TimeLineObj Height {0}, Count {1}, Row Height {2}, dGrid_TimeLineObjHeight {3}, SystemInformation.HorizontalScrollBarHeight {4}", dGrid_TimeLineObj.Height, lstTimeLineObj.Count, dGrid_TimeLineObj.RowTemplate.Height, dGrid_TimeLineObjHeight, SystemInformation.HorizontalScrollBarHeight);
 
@@ -1083,7 +1110,7 @@ namespace TimeLineUI
             //TimeLineUI_Reset();
 
             for (int i = 0; i < nTestMaxObject; i++)
-                AddTimeObj(string.Format("test{0}", i), true, true, 1);
+                AddTimeObj(0, 0, string.Format("test{0}", i), true, true);
 
             picBox_TimeEdit.Invalidate();
             picBox_Ruler.Invalidate();
@@ -1193,8 +1220,8 @@ namespace TimeLineUI
                 TimeObject sObj = obj.bodyObj.GetStartObj();
                 TimeObject eObj = obj.bodyObj.GetEndObj();
 
-                Point convSPos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, sObj.tickIdx, eObj.pos.Y);
-                Point convEPos = Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, eObj.tickIdx, eObj.pos.Y);
+                Point convSPos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, sObj.tickIdx, eObj.pos.Y);
+                Point convEPos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, eObj.tickIdx, eObj.pos.Y);
 
                 sObj.pos = convSPos;
                 eObj.pos = convEPos;
@@ -1215,7 +1242,7 @@ namespace TimeLineUI
             }
 
             // 타임 라인 이동
-            MoveToTimeLine(Util.ConvTickIdxToPoint(tickWidth, boxGapWidth, currIdx).X);
+            MoveToTimeLine(TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, currIdx).X);
 
             // 해당 틱으로 이동과 스크롤처리
             //MoveToTickIdxAndAutoScroll(currIdx);
