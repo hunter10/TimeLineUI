@@ -20,11 +20,17 @@ namespace TimeLineUI
         public int uniqueID { get; set; }               // 이 이벤트가 속한 오브젝트 아이디
         public int layerdepth_index { get; set; }        
 
+        public int GroupID { get; set; }                // 이 이벤트가 속한 오브젝트가 속할 그룹인덱스
+        public int GroupDelay { get; set; }             // 이 이벤트가 속한 오브젝트가 속할 그룹인덱스의 딜레이
+
         // 이벤트 이름, 유니크 번호, 레이어인덱스, 나머지 속성값
-        public EventObject(string eventName, int r_uniqueID, int r_layerdepth_index, string[] rData)
+        public EventObject(string eventName, int r_uniqueID, int r_layerdepth_index, string[] rData, int rGroupID=-1, int rGroupDelay=0)
         {
             uniqueID = r_uniqueID;
             layerdepth_index = r_layerdepth_index;
+
+            GroupID = rGroupID;
+            GroupDelay = rGroupDelay;
 
             name = eventName;
             pos = Point.Empty;
@@ -43,6 +49,9 @@ namespace TimeLineUI
         {
             uniqueID = 0;
             layerdepth_index = 0;
+
+            GroupID = -1;
+            GroupDelay = 0;
 
             name = eventName;
             pos = tickPos;

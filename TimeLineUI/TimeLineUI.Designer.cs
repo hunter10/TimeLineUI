@@ -240,7 +240,6 @@
             this.picBox_TimeEdit.Size = new System.Drawing.Size(72, 58);
             this.picBox_TimeEdit.TabIndex = 0;
             this.picBox_TimeEdit.TabStop = false;
-            this.picBox_TimeEdit.Move += new System.EventHandler(this.picBox_TimeEdit_Move);
             // 
             // panel_Ruler
             // 

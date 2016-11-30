@@ -50,7 +50,7 @@ namespace TimeLineUI
         const int timePerFrame = 100;           // 프레임당 시간 (0.1초)
         const int tickPerFrame = 2;             // 프레임당 틱갯수
         const int framePerSec = 5;              // 초당 5프레임
-        const int totalTime = 3;                // 전체 작업시간(초)
+        const int totalTime = 600;                // 전체 작업시간(초)
         int tickWidth = 5;                      // 이 간격을 0.1초로 계산
         int nCurrZoomRatio = 1;                 // 현재 줌 비율
 
@@ -129,7 +129,7 @@ namespace TimeLineUI
             contextMenuEventObject.MenuItems[0].Click += new EventHandler(DeleteEventToolStripMenuItem_Click);
 
             dGrid_TimeLineObj.MouseClick += new MouseEventHandler(dGrid_TimeLineObj_MouseClick);
-            dGrid_TimeLineObj.CellValueChanged += new DataGridViewCellEventHandler(dGrid_TimeLineObj_CellValueChanged);
+            //dGrid_TimeLineObj.CellValueChanged += new DataGridViewCellEventHandler(dGrid_TimeLineObj_CellValueChanged);
             //dGrid_TimeLineObj.SelectionChanged += new EventHandler(dGrid_TimeLineObj_SelectionChanged);
             dGrid_TimeLineObj.Scroll += new ScrollEventHandler(this.dGrid_TimeLineObj_Scroll);
             dGrid_TimeLineObj.SizeChanged += new EventHandler(this.dGrid_TimeLineObj_SizeChanged);
@@ -160,14 +160,14 @@ namespace TimeLineUI
             picBox_TimeEdit.MouseMove += new MouseEventHandler(picBox_TimeEdit_MouseMove);
             picBox_TimeEdit.MouseUp += new MouseEventHandler(picBox_TimeEdit_MouseUp);
             picBox_TimeEdit.MouseDown += new MouseEventHandler(picBox_TimeEdit_MouseDown);
-            //picBox_TimeEdit.MouseHover += new EventHandler(picBox_TimeEdit_MouseHover);
-            //picBox_TimeEdit.MouseWheel += new MouseEventHandler(picBox_TimeEdit_MouseWheel);
+            picBox_TimeEdit.Move += new EventHandler(picBox_TimeEdit_Move);
 
             // 스크롤되는 간격 조정
             panel_TimeEdit.HorizontalScroll.SmallChange = tickWidth;    // 양 사이드의 화살표 누를때
             panel_TimeEdit.HorizontalScroll.LargeChange = tickWidth;    // 썸네일 밖에 영역을 누를때
             panel_TimeEdit.VerticalScroll.SmallChange = 23;     // 양 사이드의 화살표 누를때
             panel_TimeEdit.VerticalScroll.LargeChange = 23;     // 썸네일 밖에 영역을 누를때
+            panel_TimeEdit.Scroll += new ScrollEventHandler(panel_TimeEdit_Scroll);
 
             // 타임에디터 판넬에 스크롤바가 발생하므로 룰러 클릭영역의 정확한 보정을 위해서 스크롤바 폭만큼 더해줘야 함.
             // 2는 라인두께
@@ -215,11 +215,17 @@ namespace TimeLineUI
 
             currOffsetIdx = 0;
 
-            // 줌 처리
-            trackBar1.Value = 3;
+            // 줌 처리 - 현재 줌값이 2이상만 되어도 픽쳐박스 최대크기가 int값을 넘어가는 문제발생
+            trackBar1.Value = 1;
             ZoomProcess(trackBar1.Value, trackBar1.Minimum, trackBar1.Maximum);
 
-            Console.WriteLine("0 picBox_TimeEdit.Width:{0}, totalTickCount:{1}, tickWidth:{2}", picBox_TimeEdit.Width, totalTickCount, tickWidth);
+            //Console.WriteLine("0 picBox_TimeEdit.Width:{0}, totalTickCount:{1}, tickWidth:{2}", picBox_TimeEdit.Width, totalTickCount, tickWidth);
+
+            // 사운드 오브젝트 추가 - 디폴트
+            AddTimeObj(EventObjectMng.nSoundObjectID, 0, "SOUND OBJECT", true, true, -1, 0, maxIdx);
+
+            // 카메라 오브젝트 추가 - 디폴트
+            AddTimeObj(EventObjectMng.nCameraObjectID, 0, "CAMERA OBJECT", true, true, -1, 0, maxIdx);
 
         }
 
@@ -229,14 +235,39 @@ namespace TimeLineUI
             List<EventObject> tempObjects = tempMng.ScriptParser(script_text, LayerCount);
 
             // 이프로젝트에서만 작동되는 코드
-            // 1. 유니크번호로 오브젝트 찾기 - 없으면 생성 (생성시 해당 유니크번호 할당)
-
+            // 유니크번호로 오브젝트 찾기 - 없으면 생성 (생성시 해당 유니크번호 할당)
             foreach(EventObject obj in tempObjects)
             {
-                // obj.tickIdx
-                // AddTimeObj();
+                if (obj.uniqueID > 0)
+                {
+                    SelectObject selObj = FindTimeLineObject(obj.uniqueID);
+                    if(selObj == null)
+                        selObj = AddTimeObj(obj.uniqueID, obj.layerdepth_index, string.Format("Object {0}", obj.uniqueID), true, true, obj.GroupID);
+
+                    AddEvent(selObj, obj.tickIdx, obj.name);
+
+                    // 타임라인오브젝트 그룹속성변경
+                    if (obj.GroupID >= 0) {
+                        TimeLineObject lineObj = GetSelectObjectToTimeLineObject(selObj);
+                        lineObj.Group = obj.GroupID;
+
+                        int selectedIndex = FindIndexTimeLineObject(obj.uniqueID);
+
+                        string strGrp = "";
+                        if (obj.GroupID >= 0)
+                            strGrp = string.Format("G{0}", obj.GroupID);
+                        dGrid_TimeLineObj.Rows[selectedIndex].Cells[0].Value = strGrp;
+                    }
+                }
             }
+
+            picBox_TimeEdit.Invalidate();
+            picBox_Ruler.Invalidate();
+            dGrid_TimeLineObj.Invalidate();
         }
+
+        
+
 
         private void HorizontalTickInit(int rulerWidth)
         {
@@ -271,9 +302,9 @@ namespace TimeLineUI
             if (body != null)
             {
                 // 라인전체 칠하기
-                Rectangle rect = new Rectangle(0,
+                Rectangle rect = new Rectangle(panel_TimeEdit.HorizontalScroll.Value,
                                                body.GetStartObj().pos.Y - timeEditPicBox_ObjectGap, 
-                                               panel_TimeEdit.Width, 
+                                               panel_TimeEdit.Width + panel_TimeEdit.HorizontalScroll.Value, 
                                                dGrid_TimeLineObj.RowTemplate.Height);
                 memGraphics.FillRectangle(Brushes.LightBlue, rect);
 
@@ -297,6 +328,7 @@ namespace TimeLineUI
 
         private void picBox_Ruler_Paint(object sender, PaintEventArgs e)
         {
+
             Bitmap bitmap = new Bitmap(picBox_Ruler.Width, picBox_Ruler.Height);
             Graphics memGraphics = Graphics.FromImage(bitmap);
             memGraphics.Clear(this.BackColor);
@@ -313,9 +345,9 @@ namespace TimeLineUI
 
                 //memGraphics.DrawString(i.ToString(), new Font("Arial", 8), Brushes.Black, new Point(lineObj.SPos.X - 4, lineObj.SPos.Y - 15));
 
-                //if ((i % 10) == 0)
+                if ((i % 10) == 0)
                 {
-                    //memGraphics.DrawString((i / 10).ToString(), new Font("Arial", 8), Brushes.Black, new Point(lineObj.SPos.X - 4, lineObj.SPos.Y - 15));
+                    memGraphics.DrawString((i / 10).ToString(), new Font("Arial", 8), Brushes.Black, new Point(lineObj.SPos.X - 4, lineObj.SPos.Y - 15));
                     //memGraphics.DrawString(string.Format("{0:0}:{1:00}", i / 600, i / 10 % 60), new Font("Arial", 8), Brushes.Black, new Point(lineObj.SPos.X, lineObj.SPos.Y - 9), stringFormat);
                 }
             }
@@ -802,6 +834,7 @@ namespace TimeLineUI
             nowTimeLine_picboxRuler = new TimeLine(nowTimeLine_picboxRuler.SPos, new Point(nowTimeLine_picboxRuler.EPos.X, panel_Ruler.Height));
         }
 
+        
         private void dGrid_TimeLineObj_MouseClick(object sender, MouseEventArgs e)
         {
             DataGridView.HitTestInfo info = dGrid_TimeLineObj.HitTest(e.Location.X, e.Location.Y);
@@ -976,16 +1009,19 @@ namespace TimeLineUI
 
         private void AddEventToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TimeBodyObject body = GetSelectObjectToTimeBodyObject(selectedObj);
-            if (body != null)
-            {
-                int tick = TimeLineUtil.ConvPointToTickIdx(tickWidth, boxGapWidth, eventMousePos);
-                TimeObject sObj = body.GetStartObj();
+            //TimeBodyObject body = GetSelectObjectToTimeBodyObject(selectedObj);
+            //if (body != null)
+            //{
+            //    int tick = TimeLineUtil.ConvPointToTickIdx(tickWidth, boxGapWidth, eventMousePos);
+            //    TimeObject sObj = body.GetStartObj();
 
-                int offsettick = tick - sObj.tickIdx;
-                
-                body.GetTimeLineObject().AddEvent(tick, offsettick, "test", TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tick, sObj.pos.Y));
-            }
+            //    int offsettick = tick - sObj.tickIdx;
+
+            //    body.GetTimeLineObject().AddEvent(tick, offsettick, "test", TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tick, sObj.pos.Y));
+            //}
+
+            int tick = TimeLineUtil.ConvPointToTickIdx(tickWidth, boxGapWidth, eventMousePos);
+            AddEvent(selectedObj, tick, "USEREVENT");
         }
 
 
@@ -1001,6 +1037,19 @@ namespace TimeLineUI
                 obj.GetEventObjectMng().ReCalcPosition(tickWidth, boxGapWidth, selectedObj.pos.Y);
 
             picBox_TimeEdit.Invalidate();
+        }
+
+        public void AddEvent(SelectObject selObj, int tick, string eventName)
+        {
+            TimeBodyObject body = GetSelectObjectToTimeBodyObject(selObj);
+            if (body != null)
+            {
+                TimeObject sObj = body.GetStartObj();
+
+                int offsettick = tick - sObj.tickIdx;
+
+                body.GetTimeLineObject().AddEvent(tick, offsettick, eventName, TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tick, sObj.pos.Y));
+            }
         }
 
         private void MoveToTimeLine(int x)
@@ -1037,14 +1086,14 @@ namespace TimeLineUI
             //Console.WriteLine("1 MoveToTickIdxAndAutoScroll maxIdx {0}, maxIdxPerPanel {1}, currOffsetIdx {2}, offsetStartIdx_FromZero:{3}", maxIdx, maxIdxPerPanel, currOffsetIdx, offsetStartIdx_FromZero);
         }
 
-        public void AddTimeObj(int r_uniqueID, int r_layerdepthIndex, string r_name, bool r_lock = false, bool r_view = true, int r_GroupIdx = 0)
+        public SelectObject AddTimeObj(int r_uniqueID, int r_layerdepthIndex, string r_name, bool r_lock = false, bool r_view = true, int r_GroupIdx = 0, int startTick=0, int endTick=10)
         {
             if (lstTimeLineObj.Count > 255)
                 MessageBox.Show("작업 제한값을 넘었습니다. (255개)");
 
             int y = (lstTimeLineObj.Count * dGrid_TimeLineObj.RowTemplate.Height) + timeEditPicBox_ObjectGap + timeEditPicBoxGapHeight;
 
-            TimeLineObject obj = new TimeLineObject(new Point(boxGapWidth, y), tickWidth, r_name, r_uniqueID, r_layerdepthIndex);
+            TimeLineObject obj = new TimeLineObject(new Point(boxGapWidth, y), tickWidth, r_name, r_uniqueID, r_layerdepthIndex, startTick, endTick);
             obj.Group = r_GroupIdx;
             obj.Name = r_name;
             obj.Lock = r_lock;
@@ -1053,7 +1102,7 @@ namespace TimeLineUI
             lstTimeLineObj.Add(obj);
 
             string strGrp = "";
-            if (r_GroupIdx > 0)
+            if (r_GroupIdx >= 0)
                 strGrp = string.Format("G{0}", r_GroupIdx);
 
             // 좌측 판넬 세팅
@@ -1074,6 +1123,24 @@ namespace TimeLineUI
                 picBox_TimeEdit.Height = tempH;
 
             nowTimeLine_picboxTimeEdit.EPos = new Point(nowTimeLine_picboxTimeEdit.EPos.X, picBox_TimeEdit.Height);
+
+            return obj.bodyObj;
+        }
+
+        private int FindIndexTimeLineObject(int r_uniqueID)
+        {
+            return lstTimeLineObj.FindIndex(r => r.uniqueID == r_uniqueID);
+        }
+
+        private SelectObject FindTimeLineObject(int r_uniqueID)
+        {
+            int index = lstTimeLineObj.FindIndex(r => r.uniqueID == r_uniqueID);
+            //Console.WriteLine("Find Index {0}", index);
+
+            if (index >= 0)
+                return lstTimeLineObj[index].bodyObj;
+            else
+                return null;
 
         }
 
@@ -1101,7 +1168,7 @@ namespace TimeLineUI
 
         private void dGrid_TimeLineObj_SizeChanged(object sender, EventArgs e)
         {
-            Console.WriteLine("SizeChanged dGrid_TimeLineObj.Height {0}, dGrid_TimeLineObjHeight {1}", dGrid_TimeLineObj.Height, dGrid_TimeLineObjHeight);
+            //Console.WriteLine("SizeChanged dGrid_TimeLineObj.Height {0}, dGrid_TimeLineObjHeight {1}", dGrid_TimeLineObj.Height, dGrid_TimeLineObjHeight);
         }
 
         // 테스트용 임시 데이터 생성용
@@ -1195,7 +1262,7 @@ namespace TimeLineUI
             // 픽처박스 넓이 = 양쪽 갭 폭 + 최대 인덱스 * 틱 폭
             picBox_TimeEdit.Width = (boxGapWidth * 2) + (maxIdx * tickWidth);
             picBox_Ruler.Width = picBox_TimeEdit.Width;
-
+            Console.WriteLine("picboxWidth:{0}", picBox_TimeEdit.Width);
 
             int calWidth = panel_Ruler.Width - boxGapWidth;         // 타임에디터 픽쳐박스의 세로스크롤바의 폭이 빠졌는지 체크
             int tickCountPerPanel = (calWidth / tickWidth) + 1;     // 한 화면당 나타낼 틱갯수 (경계조건때문에 + 1)

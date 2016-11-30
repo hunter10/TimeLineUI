@@ -54,14 +54,14 @@ namespace TimeLineUI
             return null;
         }
 
-        public TimeBodyObject(Point p, int tickWidth)
+        public TimeBodyObject(Point startP, int tickWidth, int startTick = 0, int endTick = 10)
         {
             brush = Brushes.Black;
             ObjType = OBJTYPE.BODY;
 
-            Point endP = new Point(p.X + (tickWidth * 10), p.Y);
-            sObj = new TimeObject("", p, 0, OBJTYPE.START, this);
-            eObj = new TimeObject("", endP, 10, OBJTYPE.END, this);
+            Point endP = new Point(startP.X + (tickWidth * endTick), startP.Y);
+            sObj = new TimeObject("", startP, startTick, OBJTYPE.START, this);
+            eObj = new TimeObject("", endP, endTick, OBJTYPE.END, this);
 
             pos = new Point(sObj.pos.X, sObj.pos.Y);
         }

@@ -41,9 +41,6 @@ namespace TimeLineUI
         private int nameGap = 5; // 끝점에서 이름까지 갭
 
         public TimeBodyObject bodyObj = null;
-
-        // 총 시작이벤트(틱)별로 모음이 있고 틱당 여러개의 이벤트가 모여있음. 리스트 + 맵
-        // EventObjectGrp 이 여기 포함되어 있어야 함.
         public EventObjectMng eventMng = new EventObjectMng();
 
 
@@ -53,7 +50,7 @@ namespace TimeLineUI
             eventMng.Add_EventObject(obj);
         }
 
-        public TimeLineObject(Point point1, int tickWidth, string name, int r_uniqueID, int r_layerdepthIndex)
+        public TimeLineObject(Point startPoint, int tickWidth, string name, int r_uniqueID, int r_layerdepthIndex, int startTick=0, int endTick=10)
         {
             uniqueID = r_uniqueID;
             layerdepth_index = r_layerdepthIndex;
@@ -61,31 +58,13 @@ namespace TimeLineUI
             m_tickWidth = tickWidth;
             aniType = ANITYPE.STOP_AT_END;
 
-            bodyObj = new TimeBodyObject(point1, tickWidth);
+            bodyObj = new TimeBodyObject(startPoint, tickWidth, startTick, endTick);
             bodyObj.name = name;
             bodyObj.SetTimeLineObject(this);
 
             if (bodyObj.GetEventObjectMng() == null)
                 bodyObj.SetEventMng(eventMng, m_tickWidth);
         }
-
-        /*
-        public TimeLineObject(Point point1, int tickWidth, string name)
-        {
-            uniqueID = 0;
-            layerdepth_index = 0;
-
-            m_tickWidth = tickWidth;
-            aniType = ANITYPE.STOP_AT_END;
-
-            bodyObj = new TimeBodyObject(point1, tickWidth);
-            bodyObj.name = name;
-            bodyObj.SetTimeLineObject(this);
-
-            if (bodyObj.GetEventObjectMng() == null)
-                bodyObj.SetEventMng(eventMng, m_tickWidth);
-        }
-        */
 
         public void DrawName(Graphics g, SelectObject endObj)
         {
