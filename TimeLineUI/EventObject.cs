@@ -23,6 +23,8 @@ namespace TimeLineUI
         public int GroupID { get; set; }                // 이 이벤트가 속한 오브젝트가 속할 그룹인덱스
         public int GroupDelay { get; set; }             // 이 이벤트가 속한 오브젝트가 속할 그룹인덱스의 딜레이
 
+        public string[] eventData;                      // 현재 쓰지는 않고 담아두기만...
+
         // 이벤트 이름, 유니크 번호, 레이어인덱스, 나머지 속성값
         public EventObject(string eventName, int r_uniqueID, int r_layerdepth_index, string[] rData, int rGroupID=-1, int rGroupDelay=0)
         {
@@ -43,6 +45,8 @@ namespace TimeLineUI
             hoverbrush = Brushes.Coral;
 
             mParent = null;
+
+            eventData = rData;
         }
 
         public EventObject(int tickIdx, int startOffset, string eventName, Point tickPos, SelectObject parent)

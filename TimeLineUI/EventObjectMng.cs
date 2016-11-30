@@ -249,7 +249,8 @@ namespace TimeLineUI
                         if (int.TryParse(eventObj.Value[0], out uniqueID))
                         {
                             EventObject temp = new EventObject(lstEventType[i], uniqueID, 0, eventObj.Value.ToArray());
-                            temp.tickIdx = int.Parse(eventObj.Value[eventObj.Value.Count - 1]);
+                            int milisec = int.Parse(eventObj.Value[eventObj.Value.Count - 1]);
+                            temp.tickIdx = milisec / 100; 
                             result.Add(temp);
                         }
                         else
@@ -258,7 +259,8 @@ namespace TimeLineUI
                             if (i == (int)EVENTTYPE.SOUND) // 사운드는 그룹으로만 작동
                             {
                                 EventObject temp = new EventObject(lstEventType[i], nSoundObjectID, 0, eventObj.Value.ToArray(), nGroupIdx, nGroupDelay);
-                                temp.tickIdx = nGroupDelay; // 플레이그룹의 딜레이로 세팅
+                                int milisec = nGroupDelay; // 플레이그룹의 딜레이로 세팅
+                                temp.tickIdx = milisec / 100;
                                 result.Add(temp);
                             }
                         }
@@ -267,7 +269,6 @@ namespace TimeLineUI
             }
 
             Console.WriteLine("---------------------------------------------");
-
 
             return result;
         }

@@ -246,6 +246,12 @@ namespace TimeLineUI
 
                     AddEvent(selObj, obj.tickIdx, obj.name);
 
+                    // 타임라인오브젝트 타이틀변경
+                    if(obj.name == tempMng.lstEventType[(int)EVENTTYPE.SOUND])
+                    {
+                        dGrid_TimeLineObj.Rows[0].Cells[1].Value = obj.eventData[0];
+                    }
+
                     // 타임라인오브젝트 그룹속성변경
                     if (obj.GroupID >= 0) {
                         TimeLineObject lineObj = GetSelectObjectToTimeLineObject(selObj);
@@ -293,6 +299,13 @@ namespace TimeLineUI
                 int offsettick = tick - sObj.tickIdx;
 
                 body.GetTimeLineObject().AddEvent(tick, offsettick, eventName, TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tick, sObj.pos.Y));
+
+                // 이벤트 추가후 tick값이 end보다 크거나 같으면 end tick 증가
+                if (tick >= body.GetEndObj().tickIdx)
+                {
+                    body.GetEndObj().pos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tick + 5, body.GetEndObj().pos.Y); // 5는 여유분
+                    body.GetEndObj().tickIdx = tick;
+                }
             }
         }
 
