@@ -266,8 +266,35 @@ namespace TimeLineUI
             dGrid_TimeLineObj.Invalidate();
         }
 
-        
+        private int FindIndexTimeLineObject(int r_uniqueID)
+        {
+            return lstTimeLineObj.FindIndex(r => r.uniqueID == r_uniqueID);
+        }
 
+        private SelectObject FindTimeLineObject(int r_uniqueID)
+        {
+            int index = lstTimeLineObj.FindIndex(r => r.uniqueID == r_uniqueID);
+            //Console.WriteLine("Find Index {0}", index);
+
+            if (index >= 0)
+                return lstTimeLineObj[index].bodyObj;
+            else
+                return null;
+
+        }
+
+        public void AddEvent(SelectObject selObj, int tick, string eventName)
+        {
+            TimeBodyObject body = GetSelectObjectToTimeBodyObject(selObj);
+            if (body != null)
+            {
+                TimeObject sObj = body.GetStartObj();
+
+                int offsettick = tick - sObj.tickIdx;
+
+                body.GetTimeLineObject().AddEvent(tick, offsettick, eventName, TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tick, sObj.pos.Y));
+            }
+        }
 
         private void HorizontalTickInit(int rulerWidth)
         {
@@ -1039,18 +1066,7 @@ namespace TimeLineUI
             picBox_TimeEdit.Invalidate();
         }
 
-        public void AddEvent(SelectObject selObj, int tick, string eventName)
-        {
-            TimeBodyObject body = GetSelectObjectToTimeBodyObject(selObj);
-            if (body != null)
-            {
-                TimeObject sObj = body.GetStartObj();
-
-                int offsettick = tick - sObj.tickIdx;
-
-                body.GetTimeLineObject().AddEvent(tick, offsettick, eventName, TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, tick, sObj.pos.Y));
-            }
-        }
+        
 
         private void MoveToTimeLine(int x)
         {
@@ -1127,22 +1143,7 @@ namespace TimeLineUI
             return obj.bodyObj;
         }
 
-        private int FindIndexTimeLineObject(int r_uniqueID)
-        {
-            return lstTimeLineObj.FindIndex(r => r.uniqueID == r_uniqueID);
-        }
-
-        private SelectObject FindTimeLineObject(int r_uniqueID)
-        {
-            int index = lstTimeLineObj.FindIndex(r => r.uniqueID == r_uniqueID);
-            //Console.WriteLine("Find Index {0}", index);
-
-            if (index >= 0)
-                return lstTimeLineObj[index].bodyObj;
-            else
-                return null;
-
-        }
+       
 
         private void panel_Total_Resize(object sender, EventArgs e)
         {
@@ -1218,6 +1219,12 @@ namespace TimeLineUI
             int y = panel_TimeEdit.AutoScrollPosition.Y;
             panel_TimeEdit.AutoScrollPosition = new Point(0, y);
             panel_Ruler.AutoScrollPosition = new Point(0, y);
+
+            // 사운드 오브젝트 추가 - 디폴트
+            AddTimeObj(EventObjectMng.nSoundObjectID, 0, "SOUND OBJECT", true, true, -1, 0, maxIdx);
+
+            // 카메라 오브젝트 추가 - 디폴트
+            AddTimeObj(EventObjectMng.nCameraObjectID, 0, "CAMERA OBJECT", true, true, -1, 0, maxIdx);
         }
 
         private void picBox_TimeEdit_Move(object sender, EventArgs e)
@@ -1304,8 +1311,11 @@ namespace TimeLineUI
             if (selectedObj != null)
             {
                 TimeBodyObject body = GetSelectObjectToTimeBodyObject(selectedObj);
-                StarTimeLineProcess(body.GetStartObj().tickIdx);
-                EndTimeLineProcess(body.GetEndObj().tickIdx);
+                TimeObject sObj = body.GetStartObj();
+                TimeObject eObj = body.GetEndObj();
+
+                StarTimeLineProcess(sObj.tickIdx);
+                EndTimeLineProcess(eObj.tickIdx);
             }
 
             // 타임 라인 이동
