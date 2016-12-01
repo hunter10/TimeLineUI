@@ -85,8 +85,8 @@ namespace TimeLineUI
         // 이 키값은 절대값이 아니라 Bodyd에서 얼마나 떨어졌는지 계산된 오프셋 값임.
         private SortedDictionary<int, List<EventObject>> dicEvents = new SortedDictionary<int, List<EventObject>>();
 
-        public const int nSoundObjectID = 1000;
-        public const int nCameraObjectID = 1010;
+        public const int nSoundObjectID = int.MaxValue;
+        public const int nCameraObjectID = int.MaxValue-1;
 
         public Dictionary<int, List<String>> EventCoreParser(string[] workString, int LayerCount, string firstWord, string findLastWord)
         {

@@ -302,6 +302,13 @@ namespace TimeLineUI
             }
         }
 
+        public void ChangeSoundObjectName(string strNewName)
+        {
+            int selectedIndex = FindIndexTimeLineObject(EventObjectMng.nSoundObjectID);
+            SelectObject selObj = lstTimeLineObj[selectedIndex].bodyObj;
+            ChangeTimeLineObjectName(selObj, strNewName);
+        }
+
         public void ChangeTimeLineObjectName(SelectObject selObj, string strNewName)
         {
             TimeBodyObject body = GetSelectObjectToTimeBodyObject(selObj);

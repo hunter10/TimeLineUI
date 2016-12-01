@@ -68,7 +68,7 @@ namespace TimeLineUI
 
         public void DrawName(Graphics g, SelectObject endObj)
         {
-            g.DrawString(Name, new Font("Arial", 8), Brushes.Black, new Point(endObj.pos.X + nameGap, endObj.pos.Y - 1));
+            g.DrawString(string.Format("{0}({1})", Name, uniqueID), new Font("Arial", 8), Brushes.Black, new Point(endObj.pos.X + nameGap, endObj.pos.Y - 1));
         }
 
         public SelectObject CheckPos(Point p)
