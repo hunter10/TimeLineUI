@@ -30,10 +30,6 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TimeLineUI));
             this.dGrid_TimeLineObj = new TimeLineUI.TimeLineDataGridView();
-            this.Group = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.name = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Itemlock = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.itemView = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.panel2 = new System.Windows.Forms.Panel();
             this.btnGoFirst = new System.Windows.Forms.Button();
             this.btnOneStepPrev = new System.Windows.Forms.Button();
@@ -53,6 +49,10 @@
             this.panel_Total = new System.Windows.Forms.Panel();
             this.panel_Left = new System.Windows.Forms.Panel();
             this.trackBar1 = new System.Windows.Forms.TrackBar();
+            this.Group = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.name = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Itemlock = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.itemView = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dGrid_TimeLineObj)).BeginInit();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picBox_View)).BeginInit();
@@ -88,34 +88,6 @@
             this.dGrid_TimeLineObj.RowTemplate.Height = 23;
             this.dGrid_TimeLineObj.Size = new System.Drawing.Size(353, 202);
             this.dGrid_TimeLineObj.TabIndex = 1;
-            // 
-            // Group
-            // 
-            this.Group.HeaderText = "Group";
-            this.Group.Name = "Group";
-            this.Group.ReadOnly = true;
-            this.Group.Width = 25;
-            // 
-            // name
-            // 
-            this.name.HeaderText = "Name";
-            this.name.Name = "name";
-            this.name.ReadOnly = true;
-            this.name.Width = 225;
-            // 
-            // Itemlock
-            // 
-            this.Itemlock.HeaderText = "Lock";
-            this.Itemlock.Name = "Itemlock";
-            this.Itemlock.ReadOnly = true;
-            this.Itemlock.Width = 50;
-            // 
-            // itemView
-            // 
-            this.itemView.HeaderText = "View";
-            this.itemView.Name = "itemView";
-            this.itemView.ReadOnly = true;
-            this.itemView.Width = 50;
             // 
             // panel2
             // 
@@ -322,6 +294,34 @@
             this.trackBar1.TabIndex = 17;
             this.trackBar1.Value = 1;
             this.trackBar1.Scroll += new System.EventHandler(this.trackBar1_Scroll);
+            // 
+            // Group
+            // 
+            this.Group.HeaderText = "Group";
+            this.Group.Name = "Group";
+            this.Group.ReadOnly = true;
+            this.Group.Width = 25;
+            // 
+            // name
+            // 
+            this.name.HeaderText = "Name";
+            this.name.Name = "name";
+            this.name.ReadOnly = true;
+            this.name.Width = 225;
+            // 
+            // Itemlock
+            // 
+            this.Itemlock.HeaderText = "Lock";
+            this.Itemlock.Name = "Itemlock";
+            this.Itemlock.ReadOnly = true;
+            this.Itemlock.Width = 50;
+            // 
+            // itemView
+            // 
+            this.itemView.HeaderText = "View";
+            this.itemView.Name = "itemView";
+            this.itemView.ReadOnly = true;
+            this.itemView.Width = 50;
             // 
             // TimeLineUI
             // 

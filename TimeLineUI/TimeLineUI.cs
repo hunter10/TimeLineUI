@@ -249,20 +249,13 @@ namespace TimeLineUI
                     // 타임라인오브젝트 타이틀변경
                     if(obj.name == tempMng.lstEventType[(int)EVENTTYPE.SOUND])
                     {
-                        dGrid_TimeLineObj.Rows[0].Cells[1].Value = obj.eventData[0];
+                        ChangeTimeLineObjectName(selObj, obj.eventData[0]);
                     }
 
                     // 타임라인오브젝트 그룹속성변경
-                    if (obj.GroupID >= 0) {
-                        TimeLineObject lineObj = GetSelectObjectToTimeLineObject(selObj);
-                        lineObj.Group = obj.GroupID;
-
-                        int selectedIndex = FindIndexTimeLineObject(obj.uniqueID);
-
-                        string strGrp = "";
-                        if (obj.GroupID >= 0)
-                            strGrp = string.Format("G{0}", obj.GroupID);
-                        dGrid_TimeLineObj.Rows[selectedIndex].Cells[0].Value = strGrp;
+                    if (obj.GroupID >= 0)
+                    {
+                        ChangeTimeLineObjectGroupAtt(selObj, obj);
                     }
                 }
             }
@@ -307,6 +300,33 @@ namespace TimeLineUI
                     body.GetEndObj().tickIdx = tick;
                 }
             }
+        }
+
+        public void ChangeTimeLineObjectName(SelectObject selObj, string strNewName)
+        {
+            TimeBodyObject body = GetSelectObjectToTimeBodyObject(selObj);
+            DataGridViewRow row = dGrid_TimeLineObj.Rows
+                            .Cast<DataGridViewRow>()
+                            .Where(r => r.Cells["name"].Value.ToString().Equals(body.name))
+                            .First();
+
+            body.name = strNewName;
+            dGrid_TimeLineObj.Rows[row.Index].Cells["name"].Value = strNewName;
+        }
+
+        public void ChangeTimeLineObjectGroupAtt(SelectObject selObj, EventObject evetObj)
+        {
+            TimeLineObject lineObj = GetSelectObjectToTimeLineObject(selObj);
+
+            lineObj.Group = evetObj.GroupID;
+
+            int selectedIndex = FindIndexTimeLineObject(evetObj.uniqueID);
+
+            string strGrp = "";
+            if (evetObj.GroupID >= 0)
+                strGrp = string.Format("G{0}", evetObj.GroupID);
+
+            dGrid_TimeLineObj.Rows[selectedIndex].Cells["Group"].Value = strGrp;
         }
 
         private void HorizontalTickInit(int rulerWidth)
@@ -932,7 +952,7 @@ namespace TimeLineUI
                         if (info.ColumnIndex == (int)GRIDCONTROL_COLUMN.LOCK) // Lock
                         {
                             lstTimeLineObj[info.RowIndex].Lock = (Boolean)cell.Value;
-
+                            int a = 0;
                         }
 
                         if (info.ColumnIndex == (int)GRIDCONTROL_COLUMN.VIEW) // View

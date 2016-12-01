@@ -109,20 +109,26 @@ namespace TimeLineUI
 
         public override SelectObject CheckBoxPos(Point p)
         {
-            SelectObject obj = sObj.CheckBoxPos(p);
-            if (obj != null)
-                return obj;
+            SelectObject obj;
 
-            obj = eObj.CheckBoxPos(p);
-            if (obj != null)
-                return obj;
-
+            // 이벤트와 각 엔드포인트가 겹쳤을때 이벤트부터 처리되기위해서 젤 먼저 처리
+            // 이벤트 체크
             if (eventMng != null)
             {
                 obj = eventMng.CheckPos(p);
                 if (obj != null)
                     return obj;
             }
+
+            // 스타트포인트 체크
+            obj = sObj.CheckBoxPos(p);
+            if (obj != null)
+                return obj;
+
+            // 엔드포인드 사각박스체크
+            obj = eObj.CheckBoxPos(p);
+            if (obj != null)
+                return obj;
 
             bool result = false;
             // 몸체는?

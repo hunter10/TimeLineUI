@@ -129,8 +129,6 @@ namespace TimeLineUI_Test
                     byte[] temp = new byte[len];
                     fs.Read(temp, 0, len);
                     script_text[i] = Encoding.UTF8.GetString(temp, 0, len);
-
-                    
                 }
 
                 fs.Close();
