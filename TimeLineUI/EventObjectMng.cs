@@ -88,7 +88,7 @@ namespace TimeLineUI
         public const int nSoundObjectID = int.MaxValue;
         public const int nCameraObjectID = int.MaxValue-1;
 
-        public Dictionary<int, List<String>> EventCoreParser(string[] workString, int LayerCount, string firstWord, string findLastWord)
+        public Dictionary<int, List<String>> EventCoreParser(string[] workString, int nLayerIndex, string firstWord, string findLastWord)
         {
             string strFirstWord = "[";
             strFirstWord += firstWord;
@@ -98,12 +98,12 @@ namespace TimeLineUI
             // 문자열안에 여러개의 그룹이 올수 있으므로
             Dictionary<int, List<String>> result = new Dictionary<int, List<String>>();
 
-            for (int j = 0; j < LayerCount; j++)
+            //for (int j = 0; j < LayerCount; j++)
             {
-                string text = workString[j];
+                string text = workString[nLayerIndex];
 
                 // 찾을 문자열이 여러개 섞여있을때 인덱스리스트 얻기
-                List<int> lstfindFirstIndex = GetPositions(workString[j], strFirstWord);
+                List<int> lstfindFirstIndex = GetPositions(workString[nLayerIndex], strFirstWord);
                 int key = -1;
                 foreach (int idx in lstfindFirstIndex)
                 {
@@ -175,7 +175,7 @@ namespace TimeLineUI
                 int nF = int.Parse(dicObj.Value[0]);
                 int nL = int.Parse(dicObj.Value[1]);
 
-                if(actionIdx > nF && actionIdx < nL)
+                if(actionIdx > nF && actionIdx < nF + nL)
                 {
                     return dicObj.Key;
                 }
@@ -184,7 +184,7 @@ namespace TimeLineUI
             return -1;
         }
         
-        public List<EventObject> ScriptParser(string[] script_text, int LayerCount)
+        public List<EventObject> ScriptParser(string[] script_text, int nLayerIndex)
         {
             List<EventObject> result = new List<EventObject>();
 
@@ -193,33 +193,36 @@ namespace TimeLineUI
             // value : 0([GROUP= 위치), 1([END GROUP]위치)
             string strFirstWord1 = lstEventType[(int)EVENTTYPE.GROUP];
             string strLastWor1 = "[END GROUP]";
-            Dictionary<int, List<string>> dicGgroupInActions = EventCoreParser(script_text, LayerCount, strFirstWord1, strLastWor1);
-            foreach (var obj in dicGgroupInActions)
-            {
-                foreach(var sub in obj.Value)
-                    Console.WriteLine("그룹-엔드그룹 {0}, {1}", obj.Key, sub);
-            }
+
+                Dictionary<int, List<string>> dicGroupInActions = EventCoreParser(script_text, nLayerIndex, strFirstWord1, strLastWor1);
+                //foreach (var obj in dicGgroupInActions)
+                //{
+                //    foreach(var sub in obj.Value)
+                //        Console.WriteLine("그룹-엔드그룹 시작포인트/폭 {0}, {1}", obj.Key, sub);
+                //}
+            
 
             // [PLAYGROUP] 묶음찾기
             // key : [PLYAGROUP= 가 있는 위치
             // value : 0(그룹인덱스), 1(딜레이값)
             string strTemp1 = lstEventType[(int)EVENTTYPE.PLAYGROUP];
             string strLastWord2 = "]";
-            Dictionary<int, List<string>> dicPlayGroup = EventCoreParser(script_text, LayerCount, strTemp1, strLastWord2);
-            foreach (var obj in dicPlayGroup)
-            {
-                foreach (var sub in obj.Value)
-                    Console.WriteLine("PLAYGROUP {0}, {1}", obj.Key, sub);
-            }
+
+                Dictionary<int, List<string>> dicPlayGroup = EventCoreParser(script_text, nLayerIndex, strTemp1, strLastWord2);
+                //foreach (var obj in dicPlayGroup)
+                //{
+                //    foreach (var sub in obj.Value)
+                //        Console.WriteLine("PLAYGROUP {0}, {1}", obj.Key, sub);
+                //}
 
             // 모든 이벤트 문자열 묶음 찾기
-            Dictionary<int, List<string>> dicActionGroup;
             for (int i = 0; i < lstEventType.Count; i++)
             {
-                // 제외할 액션들
+                // 타임라인 그리드뷰에서 제외할 액션들
                 if(i == (int)EVENTTYPE.GROUP || 
                    i == (int) EVENTTYPE.PLAYGROUP || 
-                   i == (int)EVENTTYPE.END_GROUP)
+                   i == (int)EVENTTYPE.END_GROUP ||
+                   i == (int)EVENTTYPE.TARGET)
                 {
                     continue;
                 }
@@ -229,28 +232,43 @@ namespace TimeLineUI
                 string strActionLast = "]";
 
                 // dicActionGroup 의 키값이 해당단어의 검색된 위치인덱스임.
-                dicActionGroup = EventCoreParser(script_text, LayerCount, strAction, strActionLast);
+                    Dictionary<int, List<string>> dicActionGroup = EventCoreParser(script_text, nLayerIndex, strAction, strActionLast);
+
 
                 // 여기서 부터는 이벤트별 처리
                 if (dicActionGroup.Count > 0)
                 {
-                    foreach(var eventObj in dicActionGroup)
+                    foreach (var eventObj in dicActionGroup)
                     {
-                        int nGroupIdx = FindGroupInAction(dicGgroupInActions, eventObj.Key);
-                        Console.WriteLine("액션{0}의 그룹인덱스 {1}", lstEventType[i], nGroupIdx);
+                        int nGroupIdx = FindGroupInAction(dicGroupInActions, eventObj.Key);
+                        Console.WriteLine("액션{0}의 그룹인덱스 {1}, 위치값 {2}, 유니크아이디 {3}", lstEventType[i], nGroupIdx, eventObj.Key, eventObj.Value[0]);
                         int nGroupDelay = 0;
                         if (nGroupIdx > -1)
                         {
-                            Console.WriteLine("     딜레이값 {0}", dicPlayGroup[nGroupIdx][1]);
-                            nGroupDelay = int.Parse(dicPlayGroup[nGroupIdx][1]);
+                            if (dicPlayGroup.Count == 0)
+                                nGroupDelay = 0;
+                            else
+                            {
+                                Console.WriteLine("     딜레이값 {0}", dicPlayGroup[nGroupIdx][1]);
+                                nGroupDelay = int.Parse(dicPlayGroup[nGroupIdx][1]);
+                            }
                         }
 
+                        
+                        // 이벤트이름 뒤에 바로 나오는 인자가 유니크 번호이면
                         int uniqueID = 0;
                         if (int.TryParse(eventObj.Value[0], out uniqueID))
                         {
-                            EventObject temp = new EventObject(lstEventType[i], uniqueID, 0, eventObj.Value.ToArray());
-                            int milisec = int.Parse(eventObj.Value[eventObj.Value.Count - 1]);
-                            temp.tickIdx = milisec / 100; 
+                            EventObject temp = new EventObject(lstEventType[i], uniqueID, 0, eventObj.Value.ToArray(), nGroupIdx, nGroupDelay);
+
+                            int milisec = 0;
+                            if (eventObj.Value.Count > 1) // 유니크 번호 다음에 아무것도 없을수 있음.
+                                milisec = int.Parse(eventObj.Value[eventObj.Value.Count - 1]);
+
+                            if(nGroupIdx > -1) // 그룹에 속해있으면 원래 딜레이값에 그룹 딜레이값을 추가한다.
+                                milisec += nGroupDelay;
+
+                            temp.tickIdx = milisec / 100;
                             result.Add(temp);
                         }
                         else
@@ -264,6 +282,7 @@ namespace TimeLineUI
                                 result.Add(temp);
                             }
                         }
+                        
                     }
                 }
             }

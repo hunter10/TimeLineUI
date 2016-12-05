@@ -50,9 +50,12 @@ namespace TimeLineUI
         const int timePerFrame = 100;           // 프레임당 시간 (0.1초)
         const int tickPerFrame = 2;             // 프레임당 틱갯수
         const int framePerSec = 5;              // 초당 5프레임
-        const int totalTime = 600;                // 전체 작업시간(초)
         int tickWidth = 5;                      // 이 간격을 0.1초로 계산
         int nCurrZoomRatio = 1;                 // 현재 줌 비율
+
+        public int TotalTime { get; set; }      // 화면상 디폴트값 600초
+        public int EndTickTime { get; set; }    // 타임바가 정지할 타임 
+        //int totalTime = 600;              // 전체 작업시간(초)
 
 
         // 눈금용 데이터들
@@ -185,24 +188,25 @@ namespace TimeLineUI
             btnOneStepNext.Click += new EventHandler(btnOneStepNext_Click);
             btnGoLast.Click += new EventHandler(btnGoLast_Click);
             btnGoReverse.Click += new EventHandler(btnGoReverse_Click);
+
+            nowTimeLine_picboxRuler = new TimeLine(new Point(boxGapWidth, rulerPicBoxGapHeight), new Point(boxGapWidth, picBox_Ruler.Height));
+            nowTimeLine_picboxTimeEdit = new TimeLine(new Point(boxGapWidth, 0), new Point(boxGapWidth, picBox_TimeEdit.Height));
+            startPTimeLine_picboxRuler = new TimeLine(new Point(boxGapWidth, rulerPicBoxGapHeight), new Point(boxGapWidth, picBox_Ruler.Height));
+            startPTimeLine_picboxTimeEdit = new TimeLine(new Point(boxGapWidth, 0), new Point(boxGapWidth, picBox_TimeEdit.Height));
+            endPTimeLine_picboxRuler = new TimeLine(new Point(boxGapWidth, rulerPicBoxGapHeight), new Point(boxGapWidth, picBox_Ruler.Height));
+            endPTimeLine_picboxTimeEdit = new TimeLine(new Point(boxGapWidth, 0), new Point(boxGapWidth, picBox_TimeEdit.Height));
+
+            TotalTime = 600;        // 기본시간 600초
+            EndTickTime = 3 * 10;   // 타이머는 동작하더라고 처리안하는시간
         }
 
         private void TimeInit()
         {
-            nowTimeLine_picboxRuler = new TimeLine(new Point(boxGapWidth, rulerPicBoxGapHeight), new Point(boxGapWidth, picBox_Ruler.Height));
-            nowTimeLine_picboxTimeEdit = new TimeLine(new Point(boxGapWidth, 0), new Point(boxGapWidth, picBox_TimeEdit.Height));
-
-            startPTimeLine_picboxRuler = new TimeLine(new Point(boxGapWidth, rulerPicBoxGapHeight), new Point(boxGapWidth, picBox_Ruler.Height));
-            startPTimeLine_picboxTimeEdit = new TimeLine(new Point(boxGapWidth, 0), new Point(boxGapWidth, picBox_TimeEdit.Height));
-
-            endPTimeLine_picboxRuler = new TimeLine(new Point(boxGapWidth, rulerPicBoxGapHeight), new Point(boxGapWidth, picBox_Ruler.Height));
-            endPTimeLine_picboxTimeEdit = new TimeLine(new Point(boxGapWidth, 0), new Point(boxGapWidth, picBox_TimeEdit.Height));
-
             timer.Interval = timePerFrame; // 0.1초
             timer.Tick += new EventHandler(timer_Tick);
 
             // 전체 틱 갯수 = 시간 * 초당 프레임갯수 * 프레임당 틱갯수 (경계조건때문에 + 1)
-            int totalTickCount = (totalTime * framePerSec * tickPerFrame) + 1; 
+            int totalTickCount = (TotalTime * framePerSec * tickPerFrame) + 1; 
             
             // 최대 인덱스 값
             maxIdx = totalTickCount - 1;
@@ -229,36 +233,48 @@ namespace TimeLineUI
 
         }
 
-        public void ScriptParser(string[] script_text, int LayerCount)
+        public void ScriptParser(string[] script_text, int MaxLayerCount)
         {
             EventObjectMng tempMng = new EventObjectMng();
-            List<EventObject> tempObjects = tempMng.ScriptParser(script_text, LayerCount);
+
+            List<List<EventObject>> lstEventObjects = new List<List<EventObject>>();
+            for (int i = 0; i < MaxLayerCount; i++)
+            {
+                List<EventObject> tempObjects = tempMng.ScriptParser(script_text, i);
+                lstEventObjects.Add(tempObjects);
+            }
 
             // 이프로젝트에서만 작동되는 코드
             // 유니크번호로 오브젝트 찾기 - 없으면 생성 (생성시 해당 유니크번호 할당)
-            foreach(EventObject obj in tempObjects)
+            foreach(var lstObj in lstEventObjects)
             {
-                if (obj.uniqueID > 0)
+                foreach (EventObject obj in lstObj)
                 {
-                    SelectObject selObj = FindTimeLineObject(obj.uniqueID);
-                    if(selObj == null)
-                        selObj = AddTimeObj(obj.uniqueID, obj.layerdepth_index, string.Format("Object {0}", obj.uniqueID), true, true, obj.GroupID);
-
-                    AddEvent(selObj, obj.tickIdx, obj.name);
-
-                    // 타임라인오브젝트 타이틀변경
-                    if(obj.name == tempMng.lstEventType[(int)EVENTTYPE.SOUND])
+                    if (obj.uniqueID > 0)
                     {
-                        ChangeTimeLineObjectName(selObj, obj.eventData[0]);
-                    }
+                        SelectObject selObj = FindTimeLineObject(obj.uniqueID);
+                        if (selObj == null)
+                            selObj = AddTimeObj(obj.uniqueID, obj.layerdepth_index, string.Format("Object {0}", obj.uniqueID), true, true, obj.GroupID);
 
-                    // 타임라인오브젝트 그룹속성변경
-                    if (obj.GroupID >= 0)
-                    {
-                        ChangeTimeLineObjectGroupAtt(selObj, obj);
+                        AddEvent(selObj, obj.tickIdx, obj.name);
+
+                        // 타임라인오브젝트 타이틀변경
+                        if (obj.name == tempMng.lstEventType[(int)EVENTTYPE.SOUND])
+                        {
+                            ChangeTimeLineObjectName(selObj, obj.eventData[0]);
+                        }
+
+                        // 타임라인오브젝트 그룹속성변경
+                        if (obj.GroupID >= 0)
+                        {
+                            ChangeTimeLineObjectGroupAtt(selObj, obj);
+                        }
                     }
                 }
             }
+
+            
+            
 
             picBox_TimeEdit.Invalidate();
             picBox_Ruler.Invalidate();
@@ -823,6 +839,9 @@ namespace TimeLineUI
         // 매 1초마다 Tick 이벤트 핸들러 실행
         void timer_Tick(object sender, EventArgs e)
         {
+            if (currIdx >= EndTickTime)
+                return;
+
             currIdx += 1;
 
             if (currIdx >= maxIdx)

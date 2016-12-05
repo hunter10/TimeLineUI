@@ -46,7 +46,7 @@
             this.viewToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(777, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1091, 24);
             this.menuStrip1.TabIndex = 1;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -92,23 +92,24 @@
             // scriptViewToolStripMenuItem
             // 
             this.scriptViewToolStripMenuItem.Name = "scriptViewToolStripMenuItem";
-            this.scriptViewToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.scriptViewToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.scriptViewToolStripMenuItem.Text = "Script View";
             this.scriptViewToolStripMenuItem.Click += new System.EventHandler(this.scriptViewToolStripMenuItem_Click);
             // 
             // timeLineUI1
             // 
-            this.timeLineUI1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.timeLineUI1.Location = new System.Drawing.Point(0, 24);
+            this.timeLineUI1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.timeLineUI1.Location = new System.Drawing.Point(0, 123);
             this.timeLineUI1.Name = "timeLineUI1";
-            this.timeLineUI1.Size = new System.Drawing.Size(777, 243);
+            this.timeLineUI1.Size = new System.Drawing.Size(1091, 525);
             this.timeLineUI1.TabIndex = 0;
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(777, 267);
+            this.ClientSize = new System.Drawing.Size(1091, 648);
             this.Controls.Add(this.timeLineUI1);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
