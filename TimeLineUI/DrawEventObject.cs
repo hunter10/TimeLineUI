@@ -7,7 +7,7 @@ using System.Drawing;
 
 namespace TimeLineUI
 {
-    public class EventObject : SelectObject
+    public class DrawEventObject : SelectObject
     {
         static public int BoxWidth = 4;// = 6;
         static public int BoxHeight = 12;// = 12;
@@ -26,7 +26,7 @@ namespace TimeLineUI
         public string[] eventData;                      // 현재 쓰지는 않고 담아두기만...
 
         // 이벤트 이름, 유니크 번호, 레이어인덱스, 나머지 속성값
-        public EventObject(string eventName, int r_uniqueID, int r_layerdepth_index, string[] rData, int rGroupID=-1, int rGroupDelay=0)
+        public DrawEventObject(string eventName, int r_uniqueID, int r_layerdepth_index, string[] rData, int rGroupID=-1, int rGroupDelay=0)
         {
             uniqueID = r_uniqueID;
             layerdepth_index = r_layerdepth_index;
@@ -47,9 +47,37 @@ namespace TimeLineUI
             mParent = null;
 
             eventData = rData;
+
+            int outUniqueID = 0;
+            int outDelayTime = 0;
+            if (int.TryParse(eventData[0], out outUniqueID))
+            {
+                int milisec = 0;
+                if (eventData.Length > 1) // 유니크 번호 다음에 아무것도 없을수 있음.
+                {
+                    if (int.TryParse(eventData[eventData.Length - 1], out outDelayTime))
+                    {
+                        milisec = outDelayTime;
+                    }
+                    else
+                    {
+                        // 맨뒤에 딜레이 타임 없으면 현재로써는 사운드밖에 없음.
+                    }
+                }
+
+                if (GroupID > -1) // 그룹에 속해있으면 원래 딜레이값에 그룹 딜레이값을 추가한다.
+                    milisec += GroupDelay;
+
+                tickIdx = milisec / 100;
+            }
+            else
+            {
+                // 첫번째 인자가 유니크가 아닌 오브젝트들의 예외처리
+                // 사운드는 스크립트 파싱과정에서 0번에 유니크 아이디를 부여
+            }
         }
 
-        public EventObject(int tickIdx, int startOffset, string eventName, Point tickPos, SelectObject parent)
+        public DrawEventObject(int tickIdx, int startOffset, string eventName, Point tickPos, SelectObject parent)
         {
             uniqueID = 0;
             layerdepth_index = 0;

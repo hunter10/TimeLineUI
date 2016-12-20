@@ -46,7 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EventObject.cs" />
+    <Compile Include="DrawEventObject.cs" />
     <Compile Include="EventObjectMng.cs" />
     <Compile Include="ScriptViewForm.cs">
       <SubType>Form</SubType>
@@ -76,6 +76,15 @@
     </Compile>
     <Compile Include="TimeObject.cs" />
     <Compile Include="TimeLineUtil.cs" />
+    <Compile Include="TotalEventManager\AEventBase.cs" />
+    <Compile Include="TotalEventManager\ECheckButton.cs" />
+    <Compile Include="TotalEventManager\EFade.cs" />
+    <Compile Include="TotalEventManager\EGroup.cs" />
+    <Compile Include="TotalEventManager\EMoveLinear.cs" />
+    <Compile Include="TotalEventManager\EScale.cs" />
+    <Compile Include="TotalEventManager\EventObject.cs" />
+    <Compile Include="TotalEventManager\GroupObject.cs" />
+    <Compile Include="TotalEventManager\TotalEventMng.cs" />
     <Compile Include="Utils.cs" />
     <EmbeddedResource Include="ScriptViewForm.resx">
       <DependentUpon>ScriptViewForm.cs</DependentUpon>

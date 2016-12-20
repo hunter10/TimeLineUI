@@ -134,6 +134,9 @@ namespace TimeLineUI_Test
                 fs.Close();
             }
 
+            // 그룹이벤트들 파싱처리하기
+            TotalEventMng.ScriptParser(script_text, 5);//, mProject.ObjectManager);
+
             timeLineUI1.ScriptParser(script_text, MAX_LAYER);
 
             

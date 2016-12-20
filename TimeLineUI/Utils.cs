@@ -140,5 +140,11 @@ namespace TimeLineUI
         {
             UniqueID.Add(ID, ID);
         }
+
+        public static int getID_gObject(int layer, int num)
+        {
+            int id = layer * 1000 + num;
+            return id;
+        }
     }
 }

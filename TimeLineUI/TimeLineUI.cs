@@ -54,7 +54,7 @@ namespace TimeLineUI
         int nCurrZoomRatio = 1;                 // 현재 줌 비율
 
         public int TotalTime { get; set; }      // 화면상 디폴트값 600초
-        public int EndTickTime { get; set; }    // 타임바가 정지할 타임 
+        public int StopTime { get; set; }       // 타임바가 정지할 타임 (초)
         //int totalTime = 600;              // 전체 작업시간(초)
 
 
@@ -85,8 +85,8 @@ namespace TimeLineUI
 
         int selectRowIndex = -1;                // 왼쪽 또는 오른쪽 판넬에서 선택했을때의 인덱스
         int nTestMaxObject = 2;                 // 테스트용으로 만들어지는 최대 오브젝트 갯수
-        
 
+        int nTimeLineOnlyDataCount = 0;         // 타임라인에서만 쓰이는 데이터 갯수
 
 
         public class TimeLine
@@ -197,7 +197,7 @@ namespace TimeLineUI
             endPTimeLine_picboxTimeEdit = new TimeLine(new Point(boxGapWidth, 0), new Point(boxGapWidth, picBox_TimeEdit.Height));
 
             TotalTime = 600;        // 기본시간 600초
-            EndTickTime = 3 * 10;   // 타이머는 동작하더라고 처리안하는시간
+            StopTime = TotalTime * 10;
         }
 
         private void TimeInit()
@@ -220,48 +220,86 @@ namespace TimeLineUI
             currOffsetIdx = 0;
 
             // 줌 처리 - 현재 줌값이 2이상만 되어도 픽쳐박스 최대크기가 int값을 넘어가는 문제발생
-            trackBar1.Value = 1;
-            ZoomProcess(trackBar1.Value, trackBar1.Minimum, trackBar1.Maximum);
+            //trackBar1.Value = 1;
+            numericUpDown1.Value = 1;
+            ZoomProcess((int)numericUpDown1.Value, (int)numericUpDown1.Minimum, (int)numericUpDown1.Maximum);
 
             //Console.WriteLine("0 picBox_TimeEdit.Width:{0}, totalTickCount:{1}, tickWidth:{2}", picBox_TimeEdit.Width, totalTickCount, tickWidth);
 
             // 사운드 오브젝트 추가 - 디폴트
-            AddTimeObj(EventObjectMng.nSoundObjectID, 0, "SOUND OBJECT", true, true, -1, 0, maxIdx);
+            AddTimeObj(TotalEventMng.nSoundObjectID, 0, "SOUND OBJECT", true, true, -1, 0, maxIdx);
 
             // 카메라 오브젝트 추가 - 디폴트
-            AddTimeObj(EventObjectMng.nCameraObjectID, 0, "CAMERA OBJECT", true, true, -1, 0, maxIdx);
+            AddTimeObj(TotalEventMng.nCameraObjectID, 0, "CAMERA OBJECT", true, true, -1, 0, maxIdx);
 
+            nTimeLineOnlyDataCount = 2;
+
+
+            //Timer update_timer = new Timer();
+            //update_timer.Interval = timePerFrame; // 0.1초
+            //update_timer.Tick += new EventHandler(update);
+            //update_timer.Start();
         }
 
         public void ScriptParser(string[] script_text, int MaxLayerCount)
         {
-            EventObjectMng tempMng = new EventObjectMng();
+            // 메모리 정리 루틴 필요
 
-            List<List<EventObject>> lstEventObjects = new List<List<EventObject>>();
+            List<List<DrawEventObject>> lstEventObjects = new List<List<DrawEventObject>>();
+
             for (int i = 0; i < MaxLayerCount; i++)
             {
-                List<EventObject> tempObjects = tempMng.ScriptParser(script_text, i);
-                lstEventObjects.Add(tempObjects);
+                List<DrawEventObjectInfo> temps = TotalEventMng.MakeDrawObjects(i);
+                List<DrawEventObject> dTemps = new List<DrawEventObject>();
+
+                foreach (DrawEventObjectInfo dObj in temps)
+                {
+                    //if (TotalEventMng.FindAppBusObjectByUniqueID(dObj.nUniqueID) != null)
+                    //{
+                        DrawEventObject temp = new DrawEventObject(dObj.strEventName,
+                                                                   dObj.nUniqueID,
+                                                                   i,
+                                                                   dObj.strData,
+                                                                   dObj.nGroupID,
+                                                                   dObj.nGroupDelay);
+                        dTemps.Add(temp);
+                    //}
+
+                    if (dObj.nUniqueID == TotalEventMng.nSoundObjectID) // 사운드는 예외작업
+                    {
+                        DrawEventObject temp1 = new DrawEventObject(dObj.strEventName,
+                                                                    dObj.nUniqueID,
+                                                                    i,
+                                                                    dObj.strData,
+                                                                    dObj.nGroupID,
+                                                                    dObj.nGroupDelay);
+                        dTemps.Add(temp1);
+                    }
+                }
+
+
+
+
+                lstEventObjects.Add(dTemps);
             }
 
-            // 이프로젝트에서만 작동되는 코드
             // 유니크번호로 오브젝트 찾기 - 없으면 생성 (생성시 해당 유니크번호 할당)
-            foreach(var lstObj in lstEventObjects)
+            foreach (var lstObj in lstEventObjects)
             {
-                foreach (EventObject obj in lstObj)
+                foreach (DrawEventObject obj in lstObj)
                 {
                     if (obj.uniqueID > 0)
                     {
-                        SelectObject selObj = FindTimeLineObject(obj.uniqueID);
+                        SelectObject selObj = FindTimeLineObjectByUniqueID(obj.uniqueID);
                         if (selObj == null)
                             selObj = AddTimeObj(obj.uniqueID, obj.layerdepth_index, string.Format("Object {0}", obj.uniqueID), true, true, obj.GroupID);
 
                         AddEvent(selObj, obj.tickIdx, obj.name);
 
                         // 타임라인오브젝트 타이틀변경
-                        if (obj.name == tempMng.lstEventType[(int)EVENTTYPE.SOUND])
+                        if (obj.name == TotalEventMng.lstEventType[(int)TOTALEVENTTYPE.SOUND])
                         {
-                            ChangeTimeLineObjectName(selObj, obj.eventData[0]);
+                            ChangeTimeLineObjectName(selObj, obj.eventData[1]);
                         }
 
                         // 타임라인오브젝트 그룹속성변경
@@ -273,30 +311,37 @@ namespace TimeLineUI
                 }
             }
 
-            
-            
+
+
+
+
+
+            /*
+            // 테스트 문장
+            for (int i = 0; i < MaxLayerCount; i++)
+            {
+                List<EventObject> temps = TotalEventMng.lstEventObjects[i]; // PlayGroup도 포함되어 있음.
+                foreach (EventObject eObj in temps)
+                {
+                    Console.WriteLine("EventObjects {0},{1}", eObj.strName, eObj.nUniqueID);
+                }
+                
+                foreach (DrawEventObject dObj in lstEventObjects[i])
+                {
+                    Console.WriteLine("DrawEventObject {0},{1}", dObj.name, dObj.uniqueID);
+                }
+            }
+            */
+
+
 
             picBox_TimeEdit.Invalidate();
             picBox_Ruler.Invalidate();
             dGrid_TimeLineObj.Invalidate();
-        }
-
-        private int FindIndexTimeLineObject(int r_uniqueID)
-        {
-            return lstTimeLineObj.FindIndex(r => r.uniqueID == r_uniqueID);
-        }
-
-        private SelectObject FindTimeLineObject(int r_uniqueID)
-        {
-            int index = lstTimeLineObj.FindIndex(r => r.uniqueID == r_uniqueID);
-            //Console.WriteLine("Find Index {0}", index);
-
-            if (index >= 0)
-                return lstTimeLineObj[index].bodyObj;
-            else
-                return null;
 
         }
+
+        
 
         public void AddEvent(SelectObject selObj, int tick, string eventName)
         {
@@ -320,24 +365,23 @@ namespace TimeLineUI
 
         public void ChangeSoundObjectName(string strNewName)
         {
-            int selectedIndex = FindIndexTimeLineObject(EventObjectMng.nSoundObjectID);
+            int selectedIndex = FindIndexTimeLineObject(TotalEventMng.nSoundObjectID);
             SelectObject selObj = lstTimeLineObj[selectedIndex].bodyObj;
             ChangeTimeLineObjectName(selObj, strNewName);
         }
 
         public void ChangeTimeLineObjectName(SelectObject selObj, string strNewName)
         {
-            TimeBodyObject body = GetSelectObjectToTimeBodyObject(selObj);
-            DataGridViewRow row = dGrid_TimeLineObj.Rows
-                            .Cast<DataGridViewRow>()
-                            .Where(r => r.Cells["name"].Value.ToString().Equals(body.name))
-                            .First();
+            TimeBodyObject body = ConvSelectObjectToTimeBodyObject(selObj);
+
+            // 선택오브젝트로 그리드오브젝트 얻어내야함
+            DataGridViewRow row = GetGridViewRowDataBySelectObject(selObj);
 
             body.name = strNewName;
             dGrid_TimeLineObj.Rows[row.Index].Cells["name"].Value = strNewName;
         }
 
-        public void ChangeTimeLineObjectGroupAtt(SelectObject selObj, EventObject evetObj)
+        public void ChangeTimeLineObjectGroupAtt(SelectObject selObj, DrawEventObject evetObj)
         {
             TimeLineObject lineObj = GetSelectObjectToTimeLineObject(selObj);
 
@@ -435,7 +479,7 @@ namespace TimeLineUI
                 }
             }
 
-            memGraphics.DrawString((drawTicks.Count-1).ToString(), new Font("Arial", 8), Brushes.Black, new Point(drawTicks[drawTicks.Count-1].SPos.X - 4, drawTicks[drawTicks.Count - 1].SPos.Y - 15));
+            //memGraphics.DrawString((drawTicks.Count-1).ToString(), new Font("Arial", 8), Brushes.Black, new Point(drawTicks[drawTicks.Count-1].SPos.X - 4, drawTicks[drawTicks.Count - 1].SPos.Y - 15));
 
             //if (selectedTimeLineObj != null)
             if (selectedObj != null)
@@ -502,7 +546,22 @@ namespace TimeLineUI
                 }
                 else
                 {
-                    Console.WriteLine("선택된 오브젝트는 {0}입니다. selectRowIndex:{1}", lstTimeLineObj[selectRowIndex].Name, selectRowIndex);
+                    if (selectedObj == null)
+                    {
+                        Console.WriteLine("선택된 오브젝트가 없습니다.");
+                        return;
+                    }
+
+                    Console.WriteLine("선택된 오브젝트는 {0}입니다. selectRowIndex{1}", lstTimeLineObj[selectRowIndex].Name, selectRowIndex);
+                    // 이벤트 처리
+                    if (selectedObj.ObjType == OBJTYPE.EVENT)
+                    {
+                        int oldtick = click_index_old;
+                        int newtick = selectedObj.tickIdx;
+                        int uid = lstTimeLineObj[selectRowIndex].uniqueID;
+                    }
+
+
 
                     selectedObj = lstTimeLineObj[selectRowIndex].bodyObj;
                     selectedObj.ObjType = OBJTYPE.TOTALLINE;
@@ -511,11 +570,9 @@ namespace TimeLineUI
                 }
             }
 
-            dGrid_TimeLineObj.Invalidate();
-            picBox_TimeEdit.Invalidate();
         }
-        
 
+        int click_index_old = 0;
         private void picBox_TimeEdit_MouseDown(object sender, MouseEventArgs e)
         {
             // 마우스 오른쪽 버튼 다운은 처리안함.
@@ -530,7 +587,12 @@ namespace TimeLineUI
 
             if (selectedObj != null)
             {
-                GridViewSelectProcess(selectedObj);
+                DataGridViewRow row = GridViewSelectProcess(selectedObj);
+                if (row == null)
+                {
+                    Console.WriteLine("selectedObj null!!");
+                    return;
+                }
 
                 if (selectedObj.ObjType == OBJTYPE.BODY)
                 {
@@ -541,16 +603,16 @@ namespace TimeLineUI
 
                     s_offsetIdx = convIdx - stick;
                     e_offsetIdx = etick - convIdx;
+                    if (e.Button == MouseButtons.Right)
+                    {
+                        //COM.LOOG("picBox_TimeEdit_MouseDown", row.Index, e.X, e.Y, e.Button);
+                        //AppMain.script_contextMenu.Show();
+                        //AppMain.script_contextMenu.Location = new Point(MousePosition.X, MousePosition.Y);
+                    }
                 }
 
                 //Console.WriteLine("picBox_TimeEdit_MouseDown name:{0}", selectedObj.name);
             }
-            else
-            {
-                Console.WriteLine("picBox_TimeEdit_MouseDown selectedObj NULL!!!!");
-            }
-
-            picBox_TimeEdit.Invalidate();
         }
 
         
@@ -559,14 +621,7 @@ namespace TimeLineUI
         {
             // 세로 타임라인 조정
             currIdx = TimeLineUtil.ConvPointToTickIdx(tickWidth, boxGapWidth, e.Location);
-
-            MoveToTimeLine(TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, currIdx).X);
-
-            // 해당 틱으로 이동과 스크롤처리
-            MoveToTickIdxAndAutoScroll(currIdx);
-            
-            picBox_TimeEdit.Invalidate();
-            picBox_Ruler.Invalidate();
+            MoveToTimeLine(currIdx);
         }
         
         private void StarTimeLineProcess(int tickIndex)
@@ -623,7 +678,8 @@ namespace TimeLineUI
                     {
                         EndTimeLineProcess(body.GetStartObj().tickIdx);
                     }
-                    
+                    picBox_TimeEdit.Invalidate();
+                    picBox_Ruler.Invalidate();
                 }
                 else if(selectedObj.ObjType == OBJTYPE.BODY)
                 {
@@ -653,6 +709,9 @@ namespace TimeLineUI
                         // 변경된 시작 오브젝트의 시작인덱스 + 이벤트 오브젝트의 오프셋
                         body.GetEventObjectMng().MoveProcess(convSIdx, tickWidth, boxGapWidth, selectedObj.pos.Y);
                     }
+
+                    picBox_TimeEdit.Invalidate();
+                    picBox_Ruler.Invalidate();
                 }
                 else if (selectedObj.ObjType == OBJTYPE.EVENT ) // 이벤트 움직이기
                 {
@@ -661,7 +720,7 @@ namespace TimeLineUI
                     selectedObj.pos = TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, convIdx, selectedObj.pos.Y);
 
                     int oldTickIdx = selectedObj.tickIdx;
-                    int oldOffset = (selectedObj as EventObject).offsetTick;
+                    int oldOffset = (selectedObj as DrawEventObject).offsetTick;
                                         
                     if (oldTickIdx != convIdx)
                     {
@@ -669,31 +728,37 @@ namespace TimeLineUI
 
                         int newOffset = convIdx - body.GetStartObj().tickIdx;
 
-                        (selectedObj as EventObject).offsetTick = newOffset;
+                        (selectedObj as DrawEventObject).offsetTick = newOffset;
 
-                        body.GetEventObjectMng().Remove_EventObject(oldOffset, (selectedObj as EventObject).index);
+                        body.GetEventObjectMng().Remove_EventObject(oldOffset, (selectedObj as DrawEventObject).index);
                         body.GetEventObjectMng().ReCalcIndex(oldOffset);
 
                         // body.GetEventObjectMng().Add_EventObject(convIdx, newOffset, selectedObj.pos, (selectedObj as EventObject));
-                        body.GetEventObjectMng().Add_EventObject(selectedObj as EventObject);
+                        body.GetEventObjectMng().Add_EventObject(selectedObj as DrawEventObject);
 
                         //Console.WriteLine("이벤트 총수:{0}", obj.GetEventObjectMng().GetCount());
                         //obj.GetEventObjectMng().TotalPrint();
                     }
 
+                    picBox_TimeEdit.Invalidate();
+                    picBox_Ruler.Invalidate();
                 }
-
-                picBox_Ruler.Invalidate();
             }
             else // 단순 호버 체크는 여기서
             {
+                bool check = false;
                 foreach (TimeLineObject obj in lstTimeLineObj)
                 {
+                    SelectObject o = obj.CheckPos(new Point(e.X, e.Y));
+
+                    if (o != null) check = true;
                     obj.CheckPos(new Point(e.X, e.Y));
                 }
+
+                if (check)
+                    picBox_TimeEdit.Invalidate();
             }
 
-            picBox_TimeEdit.Invalidate();
         }
 
         private void picBox_TimeEdit_MouseUp(object sender, MouseEventArgs e)
@@ -768,11 +833,15 @@ namespace TimeLineUI
 
         private void btnPlayStop_Click(object sender, EventArgs e)
         {
+            btnPlayStop.Enabled = false;
+            btnPlay.Enabled = true;
             timer.Stop();
         }
 
         private void btnPlay_Click(object sender, EventArgs e)
         {
+            btnPlayStop.Enabled = true;
+            btnPlay.Enabled = false;
             timer.Start();
         }
 
@@ -839,13 +908,14 @@ namespace TimeLineUI
         // 매 1초마다 Tick 이벤트 핸들러 실행
         void timer_Tick(object sender, EventArgs e)
         {
-            if (currIdx >= EndTickTime)
-                return;
-
             currIdx += 1;
 
             if (currIdx >= maxIdx)
                 timer.Stop();
+
+            // 스톱타임 도달시 타이머는 계속 가고 타이머화면갱신만 멈춤
+            if (currIdx >= StopTime)
+                return;
 
             if (currIdx >= offsetStartIdx_FromZero)
             {
@@ -968,23 +1038,25 @@ namespace TimeLineUI
                         int rowIdx = dGrid_TimeLineObj.CurrentCell.RowIndex;
                         int colIdx = dGrid_TimeLineObj.CurrentCell.ColumnIndex;
 
-                        //Console.WriteLine("dGrid_TimeLineObj.CurrentCell.RowIndex {0}, colIdx {1}", dGrid_TimeLineObj.CurrentCell.RowIndex, colIdx);
-
-                        if (Convert.ToBoolean(cell.Value) == true)
-                            cell.Value = false;
-                        else
-                            cell.Value = true;
-
-                        if (info.ColumnIndex == (int)GRIDCONTROL_COLUMN.LOCK) // Lock
+                        if (info.RowIndex > 1) // 젤 위 상단 2개는 선택이 안되어야 함.
                         {
-                            lstTimeLineObj[info.RowIndex].Lock = (Boolean)cell.Value;
-                            int a = 0;
-                        }
+                            if (Convert.ToBoolean(cell.Value) == true)
+                                cell.Value = false;
+                            else
+                                cell.Value = true;
 
-                        if (info.ColumnIndex == (int)GRIDCONTROL_COLUMN.VIEW) // View
-                        {
-                            lstTimeLineObj[info.RowIndex].View = (Boolean)cell.Value;
 
+                            if (info.ColumnIndex == (int)GRIDCONTROL_COLUMN.LOCK) // Lock
+                            {
+                                lstTimeLineObj[info.RowIndex].Lock = (Boolean)cell.Value;
+                                //AppMain.mProject.ObjectManager.Dic_AppObject[rowIdx - nTimeLineOnlyDataCount].mLock = (Boolean)cell.Value;
+                            }
+
+                            if (info.ColumnIndex == (int)GRIDCONTROL_COLUMN.VIEW) // View
+                            {
+                                lstTimeLineObj[info.RowIndex].View = (Boolean)cell.Value;
+                                //AppMain.mProject.ObjectManager.Dic_AppObject[rowIdx - nTimeLineOnlyDataCount].mHide = !(Boolean)cell.Value;
+                            }
                         }
                     }
                 }
@@ -994,6 +1066,16 @@ namespace TimeLineUI
             //Console.WriteLine("{0} {1} Lock:{2}, View:{3}", info.RowIndex, dGrid_TimeLineObj.Rows[info.RowIndex].Selected, lstTimeLineObj[info.RowIndex].Lock, lstTimeLineObj[info.RowIndex].View);
 
             picBox_TimeEdit.Invalidate();
+        }
+
+        private void dGrid_TimeLineObj_MouseWheel(object sender, MouseEventArgs e)
+        {
+            if (panel_TimeEdit.VerticalScroll.Value - e.Delta < panel_TimeEdit.VerticalScroll.Minimum)
+                panel_TimeEdit.VerticalScroll.Value = panel_TimeEdit.VerticalScroll.Minimum;
+            else if (panel_TimeEdit.VerticalScroll.Value - e.Delta > panel_TimeEdit.VerticalScroll.Maximum)
+                panel_TimeEdit.VerticalScroll.Value = panel_TimeEdit.VerticalScroll.Maximum;
+            else
+                panel_TimeEdit.VerticalScroll.Value -= e.Delta;
         }
 
         // 값이 바뀌고 난후에 들어오는 이벤트...
@@ -1011,26 +1093,27 @@ namespace TimeLineUI
             }
         }
 
-        
-        
+
+
+
 
         private void deleteGroupToolStripMenuItem_Click(object sender, EventArgs e)
         {
             //if (selectedTimeLineObj != null)
             //    Console.WriteLine("{0}", selectedTimeLineObj.Name);
 
-            TimeBodyObject body = GetSelectObjectToTimeBodyObject(selectedObj);
-            if (body == null)
+            TimeLineObject lineObj = ConvSelectObjectToTimeLineObject(selectedObj);
+            if (lineObj == null)
             {
                 Console.WriteLine("선택 데이터 정보 없음!");
                 return;
             }
 
             // 데이터 처리
-            int index = lstTimeLineObj.FindIndex(r => r.Name.Equals(body.name));
+            int index = lstTimeLineObj.FindIndex(r => r.uniqueID == lineObj.uniqueID);
             Console.WriteLine("Find Index {0}", index);
             lstTimeLineObj.RemoveAt(index);
-            
+
             // 왼쪽 판넬 처리
             //Console.WriteLine("dGrid_TimeLineObj.CurrentCell.RowIndex : {0}", dGrid_TimeLineObj.CurrentCell.RowIndex);
             dGrid_TimeLineObj.Rows.RemoveAt(dGrid_TimeLineObj.CurrentCell.RowIndex);
@@ -1116,7 +1199,7 @@ namespace TimeLineUI
             Console.WriteLine("이벤트 삭제~");
 
             TimeBodyObject obj = GetSelectObjectToTimeBodyObject(selectedObj);
-            obj.GetEventObjectMng().Remove_EventObject(selectedObj.tickIdx, (selectedObj as EventObject).index);
+            obj.GetEventObjectMng().Remove_EventObject(selectedObj.tickIdx, (selectedObj as DrawEventObject).index);
             obj.GetEventObjectMng().ReCalcIndex(selectedObj.tickIdx);
 
             if (obj.GetEventObjectMng() != null)
@@ -1125,15 +1208,30 @@ namespace TimeLineUI
             picBox_TimeEdit.Invalidate();
         }
 
-        
 
-        private void MoveToTimeLine(int x)
+
+        private void _MoveToTimeLine(int x)
         {
             nowTimeLine_picboxTimeEdit.SPos = new Point(x, nowTimeLine_picboxTimeEdit.SPos.Y);
             nowTimeLine_picboxTimeEdit.EPos = new Point(x, nowTimeLine_picboxTimeEdit.EPos.Y);
 
             nowTimeLine_picboxRuler.SPos = new Point(x, nowTimeLine_picboxRuler.SPos.Y);
             nowTimeLine_picboxRuler.EPos = new Point(x, nowTimeLine_picboxRuler.EPos.Y);
+        }
+
+        // 1초는 10
+        public void MoveToTimeLine(int tickIdx)
+        {
+            // 세로 타임라인 조정
+            currIdx = tickIdx;
+
+            _MoveToTimeLine(TimeLineUtil.ConvTickIdxToPoint(tickWidth, boxGapWidth, currIdx, 0).X);
+
+            // 해당 틱으로 이동과 스크롤처리
+            MoveToTickIdxAndAutoScroll(currIdx);
+
+            picBox_TimeEdit.Invalidate();
+            picBox_Ruler.Invalidate();
         }
 
         private void MoveToTickIdxAndAutoScroll(int clickIdx)
@@ -1181,7 +1279,7 @@ namespace TimeLineUI
                 strGrp = string.Format("G{0}", r_GroupIdx);
 
             // 좌측 판넬 세팅
-            dGrid_TimeLineObj.Rows.Add(strGrp, obj.Name, obj.Lock, obj.View);
+            dGrid_TimeLineObj.Rows.Add(strGrp, obj.Name, obj.Lock, obj.View, obj.uniqueID);
             dGrid_TimeLineObjHeight += dGrid_TimeLineObj.RowTemplate.Height;
             if (dGrid_TimeLineObj.VerticalScrollbarVisible)
                 dGrid_TimeLineObj.Columns[(int)GRIDCONTROL_COLUMN.NAME].Width = dataGridViewColumnName_Width - SystemInformation.VerticalScrollBarWidth;
@@ -1280,10 +1378,10 @@ namespace TimeLineUI
             panel_Ruler.AutoScrollPosition = new Point(0, y);
 
             // 사운드 오브젝트 추가 - 디폴트
-            AddTimeObj(EventObjectMng.nSoundObjectID, 0, "SOUND OBJECT", true, true, -1, 0, maxIdx);
+            AddTimeObj(TotalEventMng.nSoundObjectID, 0, "SOUND OBJECT", true, true, -1, 0, maxIdx);
 
             // 카메라 오브젝트 추가 - 디폴트
-            AddTimeObj(EventObjectMng.nCameraObjectID, 0, "CAMERA OBJECT", true, true, -1, 0, maxIdx);
+            AddTimeObj(TotalEventMng.nCameraObjectID, 0, "CAMERA OBJECT", true, true, -1, 0, maxIdx);
         }
 
         private void picBox_TimeEdit_Move(object sender, EventArgs e)
@@ -1304,10 +1402,10 @@ namespace TimeLineUI
 
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
-            nCurrZoomRatio = trackBar1.Value;
-            lbZoomRatio.Text = trackBar1.Value.ToString();
+            //nCurrZoomRatio = trackBar1.Value;
+            //lbZoomRatio.Text = trackBar1.Value.ToString();
 
-            ZoomProcess(trackBar1.Value, trackBar1.Minimum, trackBar1.Maximum);
+            //ZoomProcess(trackBar1.Value, trackBar1.Minimum, trackBar1.Maximum);
 
             picBox_Ruler.Invalidate();
             picBox_TimeEdit.Invalidate();
@@ -1412,19 +1510,95 @@ namespace TimeLineUI
             }
         }
 
+        // 선택된 오브젝트가 있다면 그리드뷰도 선택 처리하기
         private DataGridViewRow GridViewSelectProcess(SelectObject obj)
         {
-            TimeBodyObject bodyObj = GetSelectObjectToTimeBodyObject(obj);
-           
-            DataGridViewRow row = dGrid_TimeLineObj.Rows
-                            .Cast<DataGridViewRow>()
-                            .Where(r => r.Cells["name"].Value.ToString().Equals(bodyObj.name))
-                            .First();
+            // 선택오브젝트로 그리드오브젝트 얻어내야함
+            DataGridViewRow row = GetGridViewRowDataBySelectObject(obj);
 
             dGrid_TimeLineObj.Rows[row.Index].Selected = true;
             dGrid_TimeLineObj.CurrentCell = dGrid_TimeLineObj.Rows[row.Index].Cells[0];
 
             return row;
+        }
+
+        // 선택된 오브젝트에서 TimeLineObject 얻기
+        private TimeLineObject ConvSelectObjectToTimeLineObject(SelectObject selObj)
+        {
+            if (selObj == null) return null;
+
+            TimeBodyObject bodyObj = ConvSelectObjectToTimeBodyObject(selObj);
+
+            return bodyObj.GetTimeLineObject();
+        }
+
+        // 선택된 오브젝트에서 TimeBodyObject 얻기
+        private TimeBodyObject ConvSelectObjectToTimeBodyObject(SelectObject selObj)
+        {
+            if (selObj == null) return null;
+
+            if (selObj.ObjType == OBJTYPE.BODY || selObj.ObjType == OBJTYPE.TOTALLINE)
+            {
+                return (selObj as TimeBodyObject);
+            }
+            else
+            {
+                return (selObj.GetParent() as TimeBodyObject);
+            }
+        }
+
+        // 유니크 아이디로 타임라인 오브젝트의 인덱스 찾기
+        private int FindIndexTimeLineObject(int r_uniqueID)
+        {
+            return lstTimeLineObj.FindIndex(r => r.uniqueID == r_uniqueID);
+        }
+
+        // 유니크 아이디로 타임라인 오브젝트 얻어오기
+        private SelectObject FindTimeLineObjectByUniqueID(int r_uniqueID)
+        {
+            int index = FindIndexTimeLineObject(r_uniqueID);
+
+            if (index >= 0)
+                return lstTimeLineObj[index].bodyObj;
+            else
+                return null;
+        }
+
+        // 유니크 아이디로 타임라인 오브젝트 선택하기
+        public void TimeLineObjectSelectByUniqueID(int r_uniqueID)
+        {
+            SelectObject selObj = FindTimeLineObjectByUniqueID(r_uniqueID);
+            DataGridViewRow row = GridViewSelectProcess(selObj);
+            if (row == null)
+            {
+                Console.WriteLine("selObj가 null!!");
+                return;
+            }
+
+            selectedObj = lstTimeLineObj[row.Index].bodyObj;
+
+            picBox_TimeEdit.Invalidate();
+        }
+
+        // 선택오브젝트로 그리드오브젝트 얻어내야함
+        private DataGridViewRow GetGridViewRowDataBySelectObject(SelectObject selObj)
+        {
+            TimeLineObject lineObj = ConvSelectObjectToTimeLineObject(selObj);
+            if (lineObj == null) return null;
+
+            DataGridViewRow row = dGrid_TimeLineObj.Rows
+                            .Cast<DataGridViewRow>()
+                            .Where(r => r.Cells["UniqueID"].Value.ToString().Equals(lineObj.uniqueID.ToString()))
+                            .First();
+
+            return row;
+        }
+
+        // 유니크 아이디로 타임라인 오브젝트 삭제하기
+        public void TimeLineObjectDelectByUniqueID(int r_uniqueID)
+        {
+            TimeLineObjectSelectByUniqueID(r_uniqueID);
+            deleteGroupToolStripMenuItem_Click(null, null);
         }
     }
 }

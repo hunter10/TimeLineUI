@@ -15,310 +15,22 @@ namespace TimeLineUI
         WIDTHOVER,      // 이벤트 전체 갯수 폭이 틱 폭을 넘어갈때 - 이벤트 마크와 숫자로 가려진 갯수 표시
         OK              // 다 출력할수 있을때
     }
-
-    // 순서는 스크립트 생성 버튼 역할.xlsx대로
-    public enum EVENTTYPE
-    {
-        NONE,
-        MOVE_LINEAR,            // 직선이동
-        MOVE_DECELERATE,        // 감속이동
-        ROTATE,                 // 회전
-        ZOOM,                   // 줌 인/ 아웃
-        FADE_IN,                // 페이드 인
-        FADE_OUT,               // 페이드 아웃
-        GROUP,                  // 그룹설정
-        CRASH_CREATE,           // 충돌생성
-        CRASH_EFFECT,           // 충돌효과
-        TARGET,                 // 타겟설정
-        MOVE_POSITION,          // 좌표설정
-        PLAY,                   // 플레이이벤트
-        CLEAR,                  // 클리어
-        SOUND,                  // 사운드 - 예외처리(가상의 사운드 오브젝트생성후 추가되어야 함)
-        MOTION,                 // 모션변경
-        SCROLL,                 // 스크롤
-        SETPLAY,                // 플레이
-        SHOW,                   // 보임/숨김
-        ROLL,                   // 반복배경
-        BACKUP,                 // 상태백업
-        MOTIONINC,              // 모션증가
-        MOTIONDEC,              // 모션감소
-        PLAYGROUP,              // 그룹플레이
-        END_GROUP,              // 그룹생성종료
-    }
     
     public class EventObjectMng
     {
-        public List<string> lstEventType = new List<string> {
-            "NONE",
-            "MOVE LINEAR",            // 직선이동
-            "MOVE DECELERATE",        // 감속이동
-            "ROTATE",                 // 회전
-            "ZOOM",                   // 줌 인/ 아웃
-            "FADE IN",                // 페이드 인
-            "FADE OUT",               // 페이드 아웃
-            "GROUP",                  // 그룹설정
-            "CRASH CREATE",           // 충돌생성
-            "CRASH EFFECT",           // 충돌효과
-            "TARGET",                 // 타겟설정
-            "MOVE POSITION",          // 좌표설정
-            "PLAY",                   // 플레이이벤트
-            "CLEAR",                  // 클리어
-            "SOUND",                  // 사운드 - 예외처리(가상의 사운드 오브젝트생성후 추가되어야 함)
-            "MOTION",                 // 모션변경
-            "SCROLL",                 // 스크롤
-            "SETPLAY",                // 플레이
-            "SHOW",                   // 보임/숨김
-            "ROLL",                   // 반복배경
-            "BACKUP",                 // 상태백업
-            "MOTIONINC",              // 모션증가
-            "MOTIONDEC",              // 모션감소
-            "PLAYGROUP",              // 그룹플레이
-            "END GROUP",              // 그룹생성종료
-        };
-
-        public int Group { get; set; }      // 그룹 인덱스
-
         static public int nEventGap = 5;
 
         private int nTickWidth = 0;
 
         // 이 키값은 절대값이 아니라 Bodyd에서 얼마나 떨어졌는지 계산된 오프셋 값임.
-        private SortedDictionary<int, List<EventObject>> dicEvents = new SortedDictionary<int, List<EventObject>>();
-
-        public const int nSoundObjectID = int.MaxValue;
-        public const int nCameraObjectID = int.MaxValue-1;
-
-        public Dictionary<int, List<String>> EventCoreParser(string[] workString, int nLayerIndex, string firstWord, string findLastWord)
-        {
-            string strFirstWord = "[";
-            strFirstWord += firstWord;
-            strFirstWord += "=";
-
-
-            // 문자열안에 여러개의 그룹이 올수 있으므로
-            Dictionary<int, List<String>> result = new Dictionary<int, List<String>>();
-
-            //for (int j = 0; j < LayerCount; j++)
-            {
-                string text = workString[nLayerIndex];
-
-                // 찾을 문자열이 여러개 섞여있을때 인덱스리스트 얻기
-                List<int> lstfindFirstIndex = GetPositions(workString[nLayerIndex], strFirstWord);
-                int key = -1;
-                foreach (int idx in lstfindFirstIndex)
-                {
-                    string str = text.Substring(idx);
-
-                    int findLastIndex = str.IndexOf(findLastWord);
-
-                    int startindex = strFirstWord.Length;
-
-                    int findLength = findLastIndex - strFirstWord.Length;
-                    string subValues = str.Substring(startindex, findLength);
-                    string[] values = subValues.Split(',');
-
-                    // 그룹-엔드그룹 처리때만 쓰임 그룹의 인덱스를 얻기위해
-                    int findGroupindex = str.IndexOf("]");                              
-                    int GroupLength = findGroupindex - strFirstWord.Length;            
-                    string subGroupValues = str.Substring(startindex, GroupLength);     
-                    string[] groupvalues = subGroupValues.Split(',');                   
-
-
-                    // Console.WriteLine("액션 {0}, 유니크 {1}, 레이어 {2}, 딜레이 {3}, 인덱스 {4}", findFirstWord, values[0], j, values[values.Length - 1], idx);
-
-
-                    int intParseResult = 0;
-                    if(int.TryParse(values[0], out intParseResult))
-                    {
-                        if(firstWord == "PLAYGROUP")
-                            key = int.Parse(groupvalues[0]);
-                        else
-                            key = idx;
-
-                        List<string> findValues = values.ToList();
-                        result.Add(key, findValues);
-                        
-                    }
-                    else // 예외나 에러처리...
-                    {
-                        if (findLastWord == "[END GROUP]") 
-                        {
-                            // GROUP 인덱스, END GROUP 인덱스
-                            key = int.Parse(groupvalues[0]);
-
-                            List<string> findValues = new List<string>();
-                            findValues.Add(idx.ToString());
-                            findValues.Add(findLastIndex.ToString());
-
-                            result.Add(key, findValues);
-                        }
-                        else if(firstWord == "SOUND")
-                        {
-                            key = idx;
-                            List<string> findValues = values.ToList();
-                            result.Add(key, findValues);
-                        }
-                    }
-                }
-            }
-
-            return result;
-        }
-
-        private int FindGroupInAction(Dictionary<int, List<string>> dicGroup, int actionIdx)
-        {
-            // 그룹이라는 단어가 나오면 그 인덱스들을 기억한 다음 엔드그룹이라는 인덱스도 기억 - 딕셔너리 처리
-            // 이벤트단어를 찾았을때 그룹인덱스와 엔드그룹인덱스안에 있다면 해당그룹임.
-            foreach (KeyValuePair<int, List<string>> dicObj in dicGroup)
-            {
-                //Console.WriteLine("Key:{0} First:{1}-Last:{2}", dicObj.Key, dicObj.Value[0], dicObj.Value[1]);
-                int nF = int.Parse(dicObj.Value[0]);
-                int nL = int.Parse(dicObj.Value[1]);
-
-                if(actionIdx > nF && actionIdx < nF + nL)
-                {
-                    return dicObj.Key;
-                }
-            }
-
-            return -1;
-        }
-        
-        public List<EventObject> ScriptParser(string[] script_text, int nLayerIndex)
-        {
-            List<EventObject> result = new List<EventObject>();
-
-            // [GROUP] ~ [END GROUP] 묶음찾기
-            // key : [GROUP= 이 있는 위치
-            // value : 0([GROUP= 위치), 1([END GROUP]위치)
-            string strFirstWord1 = lstEventType[(int)EVENTTYPE.GROUP];
-            string strLastWor1 = "[END GROUP]";
-
-                Dictionary<int, List<string>> dicGroupInActions = EventCoreParser(script_text, nLayerIndex, strFirstWord1, strLastWor1);
-                //foreach (var obj in dicGgroupInActions)
-                //{
-                //    foreach(var sub in obj.Value)
-                //        Console.WriteLine("그룹-엔드그룹 시작포인트/폭 {0}, {1}", obj.Key, sub);
-                //}
-            
-
-            // [PLAYGROUP] 묶음찾기
-            // key : [PLYAGROUP= 가 있는 위치
-            // value : 0(그룹인덱스), 1(딜레이값)
-            string strTemp1 = lstEventType[(int)EVENTTYPE.PLAYGROUP];
-            string strLastWord2 = "]";
-
-                Dictionary<int, List<string>> dicPlayGroup = EventCoreParser(script_text, nLayerIndex, strTemp1, strLastWord2);
-                //foreach (var obj in dicPlayGroup)
-                //{
-                //    foreach (var sub in obj.Value)
-                //        Console.WriteLine("PLAYGROUP {0}, {1}", obj.Key, sub);
-                //}
-
-            // 모든 이벤트 문자열 묶음 찾기
-            for (int i = 0; i < lstEventType.Count; i++)
-            {
-                // 타임라인 그리드뷰에서 제외할 액션들
-                if(i == (int)EVENTTYPE.GROUP || 
-                   i == (int) EVENTTYPE.PLAYGROUP || 
-                   i == (int)EVENTTYPE.END_GROUP ||
-                   i == (int)EVENTTYPE.TARGET)
-                {
-                    continue;
-                }
-
-                // 찾을 액션문자열
-                string strAction = lstEventType[i];
-                string strActionLast = "]";
-
-                // dicActionGroup 의 키값이 해당단어의 검색된 위치인덱스임.
-                    Dictionary<int, List<string>> dicActionGroup = EventCoreParser(script_text, nLayerIndex, strAction, strActionLast);
-
-
-                // 여기서 부터는 이벤트별 처리
-                if (dicActionGroup.Count > 0)
-                {
-                    foreach (var eventObj in dicActionGroup)
-                    {
-                        int nGroupIdx = FindGroupInAction(dicGroupInActions, eventObj.Key);
-                        Console.WriteLine("액션{0}의 그룹인덱스 {1}, 위치값 {2}, 유니크아이디 {3}", lstEventType[i], nGroupIdx, eventObj.Key, eventObj.Value[0]);
-                        int nGroupDelay = 0;
-                        if (nGroupIdx > -1)
-                        {
-                            if (dicPlayGroup.Count == 0)
-                                nGroupDelay = 0;
-                            else
-                            {
-                                Console.WriteLine("     딜레이값 {0}", dicPlayGroup[nGroupIdx][1]);
-                                nGroupDelay = int.Parse(dicPlayGroup[nGroupIdx][1]);
-                            }
-                        }
-
-                        
-                        // 이벤트이름 뒤에 바로 나오는 인자가 유니크 번호이면
-                        int uniqueID = 0;
-                        if (int.TryParse(eventObj.Value[0], out uniqueID))
-                        {
-                            EventObject temp = new EventObject(lstEventType[i], uniqueID, 0, eventObj.Value.ToArray(), nGroupIdx, nGroupDelay);
-
-                            int milisec = 0;
-                            if (eventObj.Value.Count > 1) // 유니크 번호 다음에 아무것도 없을수 있음.
-                                milisec = int.Parse(eventObj.Value[eventObj.Value.Count - 1]);
-
-                            if(nGroupIdx > -1) // 그룹에 속해있으면 원래 딜레이값에 그룹 딜레이값을 추가한다.
-                                milisec += nGroupDelay;
-
-                            temp.tickIdx = milisec / 100;
-                            result.Add(temp);
-                        }
-                        else
-                        {
-                            // 예외처리...
-                            if (i == (int)EVENTTYPE.SOUND) // 사운드는 그룹으로만 작동
-                            {
-                                EventObject temp = new EventObject(lstEventType[i], nSoundObjectID, 0, eventObj.Value.ToArray(), nGroupIdx, nGroupDelay);
-                                int milisec = nGroupDelay; // 플레이그룹의 딜레이로 세팅
-                                temp.tickIdx = milisec / 100;
-                                result.Add(temp);
-                            }
-                        }
-                        
-                    }
-                }
-            }
-
-            Console.WriteLine("---------------------------------------------");
-
-            return result;
-        }
-
-
-        public List<int> GetPositions(string source, string searchString)
-        {
-            List<int> ret = new List<int>();
-            int len = searchString.Length;
-            int start = -len;
-            while (true)
-            {
-                start = source.IndexOf(searchString, start + len);
-                if (start == -1)
-                {
-                    break;
-                }
-                else
-                {
-                    ret.Add(start);
-                }
-            }
-            return ret;
-        }
+        private SortedDictionary<int, List<DrawEventObject>> dicEvents = new SortedDictionary<int, List<DrawEventObject>>();
 
         public void SetTickWidth(int rWidth)
         {
             nTickWidth = rWidth;
         }
 
-        public SortedDictionary<int, List<EventObject>> GetDic()
+        public SortedDictionary<int, List<DrawEventObject>> GetDic()
         {
             return dicEvents;
         }
@@ -330,17 +42,17 @@ namespace TimeLineUI
 
         public void TotalPrint()
         {
-            foreach (KeyValuePair<int, List<EventObject>> obj in dicEvents)
+            foreach (KeyValuePair<int, List<DrawEventObject>> obj in dicEvents)
             {
                 Console.WriteLine("키{0}", obj.Key);
-                foreach (EventObject lstObj in obj.Value)
+                foreach (DrawEventObject lstObj in obj.Value)
                 {
                     Console.WriteLine("     Name:{0}, Index:{1}, tick:{2}, Pos:{3}", lstObj.name, lstObj.index, lstObj.tickIdx, lstObj.pos);
                 }
             }
         }
 
-        public void Add_EventObject(EventObject val)
+        public void Add_EventObject(DrawEventObject val)
         {
             int key = val.offsetTick;
             if (dicEvents.ContainsKey(key))
@@ -355,7 +67,7 @@ namespace TimeLineUI
             }
             else
             {
-                List<EventObject> temp = new List<EventObject>();
+                List<DrawEventObject> temp = new List<DrawEventObject>();
                 
                 val.index = 0;
                 temp.Add(val);
@@ -363,7 +75,7 @@ namespace TimeLineUI
             }
         }
 
-        public List<EventObject> Get_EventObjects(int key)
+        public List<DrawEventObject> Get_EventObjects(int key)
         {
             if (dicEvents.ContainsKey(key))
             {
@@ -373,7 +85,7 @@ namespace TimeLineUI
             return null;
         }
 
-        public EventObject Get_EventObject(int key, int index)
+        public DrawEventObject Get_EventObject(int key, int index)
         {
             if (dicEvents.ContainsKey(key))
             {
@@ -385,13 +97,13 @@ namespace TimeLineUI
 
         public void DrawEvents(Graphics g)
         {
-            foreach (KeyValuePair<int, List<EventObject>> obj in dicEvents)
+            foreach (KeyValuePair<int, List<DrawEventObject>> obj in dicEvents)
             {
-                EVENTDRAWSTATE resultState = CheckDrawEvent(obj.Value.Count, EventObject.BoxWidth);  
+                EVENTDRAWSTATE resultState = CheckDrawEvent(obj.Value.Count, DrawEventObject.BoxWidth);  
 
                 if (resultState == EVENTDRAWSTATE.OK) // 틱 당 이벤트 다 그리기
                 {
-                    foreach (EventObject lstObj in obj.Value)
+                    foreach (DrawEventObject lstObj in obj.Value)
                     {
                         lstObj.DrawMark(g);
                     }
@@ -473,7 +185,7 @@ namespace TimeLineUI
             else
             {
                 int i = 0;
-                foreach (EventObject lstObj in dicEvents[key])
+                foreach (DrawEventObject lstObj in dicEvents[key])
                 {
                     lstObj.index = i;
                     i++;
@@ -486,10 +198,10 @@ namespace TimeLineUI
         {
             nTickWidth = rTickWidth;
 
-            foreach (KeyValuePair<int, List<EventObject>> obj in dicEvents)
+            foreach (KeyValuePair<int, List<DrawEventObject>> obj in dicEvents)
             {
                 int i = 0;
-                foreach (EventObject lstObj in obj.Value)
+                foreach (DrawEventObject lstObj in obj.Value)
                 {
                     Point convPos = TimeLineUtil.ConvTickIdxToPoint(rTickWidth, rStartGap, lstObj.tickIdx, yPos);
                     int x = convPos.X + (i * nEventGap);
@@ -504,9 +216,9 @@ namespace TimeLineUI
 
         public SelectObject CheckPos(Point p)
         {
-            foreach (KeyValuePair<int, List<EventObject>> obj in dicEvents)
+            foreach (KeyValuePair<int, List<DrawEventObject>> obj in dicEvents)
             {
-                foreach (EventObject lstObj in obj.Value)
+                foreach (DrawEventObject lstObj in obj.Value)
                 {
                     SelectObject eObj = lstObj.CheckBoxPos(p);
                     if (eObj != null) return eObj;

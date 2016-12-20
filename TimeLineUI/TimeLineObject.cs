@@ -46,7 +46,7 @@ namespace TimeLineUI
 
         public void AddEvent(int tick, int tickOffset, string objName, Point tickPos)
         {
-            EventObject obj = new EventObject(tick, tickOffset, objName, tickPos, bodyObj);
+            DrawEventObject obj = new DrawEventObject(tick, tickOffset, objName, tickPos, bodyObj);
             eventMng.Add_EventObject(obj);
         }
 
