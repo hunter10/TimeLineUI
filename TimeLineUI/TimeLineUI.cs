@@ -257,7 +257,7 @@ namespace TimeLineUI
                     //if (TotalEventMng.FindAppBusObjectByUniqueID(dObj.nUniqueID) != null)
                     //{
                         DrawEventObject temp = new DrawEventObject(dObj.strEventName,
-                                                                   dObj.nUniqueID,
+                                                                   dObj.nObjectUniID,
                                                                    i,
                                                                    dObj.strData,
                                                                    dObj.nGroupID,
@@ -265,10 +265,10 @@ namespace TimeLineUI
                         dTemps.Add(temp);
                     //}
 
-                    if (dObj.nUniqueID == TotalEventMng.nSoundObjectID) // 사운드는 예외작업
+                    if (dObj.nObjectUniID == TotalEventMng.nSoundObjectID) // 사운드는 예외작업
                     {
                         DrawEventObject temp1 = new DrawEventObject(dObj.strEventName,
-                                                                    dObj.nUniqueID,
+                                                                    dObj.nObjectUniID,
                                                                     i,
                                                                     dObj.strData,
                                                                     dObj.nGroupID,

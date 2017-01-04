@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace TimeLineUI
 {
@@ -77,8 +78,10 @@ namespace TimeLineUI
         ANIMATION,
         SENDNET,
         X_CRASH,
-
-        CRASH_CREATE,           // 충돌생성
+        URL,
+        X_SOUND,
+        LANGUAGE,
+        OBJECT_DEAD,
     }
 
     public enum SCRITEDITTYPE
@@ -93,7 +96,8 @@ namespace TimeLineUI
     public struct DrawEventObjectInfo
     {
         public string strEventName;
-        public int nUniqueID;
+        public int nObjectUniID;
+        public Guid LinkUniID;           // 이 이벤트랑 연결된 유니크 아이디
         public int nLayerdepth_index;
         public string[] strData;
         public int nGroupID;
@@ -103,8 +107,8 @@ namespace TimeLineUI
     public class TotalEventMng
     {
         // 레이어별 리스트를 갖고있음.
-        static public List<List<GroupObject>> lstGroupObjects = new List<List<GroupObject>>();
-        static public List<List<EventObject>> lstEventObjects = new List<List<EventObject>>();
+        static public List<List<GroupObject>> mlstGroupObjects = new List<List<GroupObject>>();
+        static public List<List<EventObject>> mlstEventObjects = new List<List<EventObject>>();
 
         static public List<string> lstEventType = new List<string> {
             "NONE",
@@ -174,8 +178,10 @@ namespace TimeLineUI
             "ANIMATION",
             "SENDNET",
             "X_CRASH",
-
-            "CRASH CREATE",           // 충돌생성
+            "URL",
+            "X_SOUND",
+            "LANGUAGE",
+            "OBJECT_DEAD",
         };
 
         static public int nSoundObjectID = int.MaxValue;
@@ -187,11 +193,12 @@ namespace TimeLineUI
         {
             List<DrawEventObjectInfo> result = new List<DrawEventObjectInfo>();
 
-            foreach (EventObject obj in lstEventObjects[nLayerIndex])
+            foreach (EventObject obj in mlstEventObjects[nLayerIndex])
             {
                 DrawEventObjectInfo info = new DrawEventObjectInfo();
                 info.strEventName = obj.strName;
-                info.nUniqueID = obj.nUniqueID;
+                info.nObjectUniID = obj.nObjectUniID; // 자신의 유니크아이디가 아니라 찾아야할 유니크 아이디
+                info.LinkUniID = obj.uniID;
                 info.nLayerdepth_index = obj.mScriptInfo.nLayerIdx;
                 info.strData = obj.mScriptInfo.lstData.ToArray();
 
@@ -201,7 +208,7 @@ namespace TimeLineUI
                 result.Add(info);
             }
 
-            foreach (GroupObject gObj in lstGroupObjects[nLayerIndex])
+            foreach (GroupObject gObj in mlstGroupObjects[nLayerIndex])
             {
                 foreach (var eObj in gObj.lstEventObjects)
                 {
@@ -214,7 +221,8 @@ namespace TimeLineUI
 
                     DrawEventObjectInfo info = new DrawEventObjectInfo();
                     info.strEventName = eObj.Value.strName;
-                    info.nUniqueID = eObj.Value.nUniqueID;
+                    info.nObjectUniID = eObj.Value.nObjectUniID;   // 자신의 유니크아이디가 아니라 찾아야할 유니크 아이디
+                    info.LinkUniID = eObj.Value.uniID;
                     info.nLayerdepth_index = eObj.Value.mScriptInfo.nLayerIdx;
                     info.strData = eObj.Value.mScriptInfo.lstData.ToArray();
 
@@ -233,16 +241,16 @@ namespace TimeLineUI
             nMaxLayerCount = MaxLayerCount;
             //mAppBusObjMng = mng;
 
-            lstGroupObjects.Clear();
-            lstEventObjects.Clear();
+            mlstGroupObjects.Clear();
+            mlstEventObjects.Clear();
 
             for (int i = 0; i < MaxLayerCount; i++)
             {
                 List<GroupObject> tempGroupObjects;
                 List<EventObject> tempEventObjects;
                 _ScriptParser(script_text, i, out tempGroupObjects, out tempEventObjects);
-                lstGroupObjects.Add(tempGroupObjects);
-                lstEventObjects.Add(tempEventObjects);
+                mlstGroupObjects.Add(tempGroupObjects);
+                mlstEventObjects.Add(tempEventObjects);
             }
 
             // PLAYGROUP 리스트 돌면서
@@ -250,10 +258,17 @@ namespace TimeLineUI
             List<EventObject> lstPlayGroups = FindEventObjectByType(TOTALEVENTTYPE.PLAYGROUP);
             foreach (EventObject obj in lstPlayGroups)
             {
-                GroupObject gObj = FindGroupObjectByGroupIndex(int.Parse(obj.mScriptInfo.lstData[0]));
-                int delay = int.Parse(obj.mScriptInfo.lstData[1]);
+                List<GroupObject> gObjs = FindGroupObjectByGroupIndex(int.Parse(obj.mScriptInfo.lstData[0]));
+                foreach (GroupObject gObj in gObjs)
+                {
+                    if (gObj.eTotalEventType == TOTALEVENTTYPE.GROUP)
+                    {
+                        //int uniqe = int.Parse(obj.mScriptInfo.lstData[0]);
 
-                gObj.GroupDelay = delay;
+                        int delay = int.Parse(obj.mScriptInfo.lstData[1]);
+                        gObj.GroupDelay = delay;
+                    }
+                }
             }
 
 
@@ -282,20 +297,7 @@ namespace TimeLineUI
             //string addResult = EditScript(script_text, null, SCRITEDITTYPE.ADD, "new string");
         }
 
-        static public AEventBase FindTotalEventObjectByUniqueID(int id)
-        {
-            EventObject eObj = FindEventObjectByUniqueID(id);
-
-            if (eObj != null)
-            {
-                // 그대로 리턴
-                return eObj;
-            }
-            else
-            {
-                return FindGroupObjectByGroupIndex(id);
-            }
-        }
+        
 
         static public string EditScript(string[] workString, AEventBase OrgObject, SCRITEDITTYPE editType, string newString = "", int workLayer = 0)
         {
@@ -340,48 +342,35 @@ namespace TimeLineUI
 
 
             // [GROUP] ~ [END GROUP] 묶음찾기
-            // key : 그룹인덱스
-            // value : 0([GROUP= 위치), 1([END GROUP]위치)
             string strFirstWord = lstEventType[(int)TOTALEVENTTYPE.GROUP];
             string strLastWord = "[END GROUP]";
-            Dictionary<int, ScriptInfo> dicGroup = _EventCoreParser(script_text, nLayerIndex, strFirstWord, strLastWord);
+            Dictionary<Guid, ScriptInfo> dicGroup = _EventCoreParser(script_text, nLayerIndex, strFirstWord, strLastWord);
             foreach (var obj in dicGroup)
             {
                 foreach (var sub in obj.Value.lstData)
                     Console.WriteLine("일반 그룹-엔드그룹 (키 {0}, 시작포인트/폭 {1})", obj.Key, sub);
 
-                // 그룹 오브젝트 생성
-                // 번개툴에서는 그룹의 첫번째 오브젝트의 유니크아이디가 그룹아이디지만 앱버스에서는 고유아이디를 부여해서 관리.
-                int nUniqueID = Utils.getID_gObject(nLayerIndex, obj.Key);
-                EGroup eGroupObj = new EGroup(obj.Value, nUniqueID, TOTALEVENTTYPE.GROUP, obj.Key, 0);
+                EGroup eGroupObj = new EGroup(obj.Value, TOTALEVENTTYPE.GROUP, int.Parse(obj.Value.lstData[0]), 0);
                 groupResult.Add(eGroupObj);
             }
 
             // [CHECK BUTTON] ~ [END BUTTON] 묶음찾기
-            // key : 그룹인덱스
-            // value : 0([CHECK BUTTON= 위치), 1([END BUTTON]위치)
             strFirstWord = lstEventType[(int)TOTALEVENTTYPE.CHECK_BUTTON];
             strLastWord = "[END BUTTON]";
-            Dictionary<int, ScriptInfo> dicCheckButton = _EventCoreParser(script_text, nLayerIndex, strFirstWord, strLastWord);
+            Dictionary<Guid, ScriptInfo> dicCheckButton = _EventCoreParser(script_text, nLayerIndex, strFirstWord, strLastWord);
             foreach (var obj in dicCheckButton)
             {
                 foreach (var sub in obj.Value.lstData)
                     Console.WriteLine("체크버튼 그룹-엔드그룹 (키 {0}, 시작포인트/폭 {1})", obj.Key, sub);
 
-                // 체크버튼 오브젝트 생성
-                // 번개툴에서는 그룹의 첫번째 오브젝트의 유니크아이디가 그룹아이디지만 앱버스에서는 고유아이디를 부여해서 관리.
-                // 체크버튼은 현재 유니크 아이디에 임시로 100을 곱해서 쓰고 있음
-                int nUniqueID = Utils.getID_gObject(nLayerIndex, obj.Key * 100);
-                ECheckButton eCheckButtonObj = new ECheckButton(obj.Value, nUniqueID, TOTALEVENTTYPE.CHECK_BUTTON, obj.Key, 0);
+                ECheckButton eCheckButtonObj = new ECheckButton(obj.Value, TOTALEVENTTYPE.CHECK_BUTTON, int.Parse(obj.Value.lstData[0]), 0);
                 groupResult.Add(eCheckButtonObj);
             }
 
             // [CALL BUTTON] ~ [FINISH GROUP] 묶음찾기
-            // key : 그룹인덱스
-            // value : 0([CALL BUTTON= 위치), 1([FINISH GROUP]위치)
             strFirstWord = lstEventType[(int)TOTALEVENTTYPE.CALL_BUTTON];
             strLastWord = "[FINISH GROUP]";
-            Dictionary<int, ScriptInfo> dicCallButton = _EventCoreParser(script_text, nLayerIndex, strFirstWord, strLastWord);
+            Dictionary<Guid, ScriptInfo> dicCallButton = _EventCoreParser(script_text, nLayerIndex, strFirstWord, strLastWord);
             foreach (var obj in dicCheckButton)
             {
                 foreach (var sub in obj.Value.lstData)
@@ -401,7 +390,7 @@ namespace TimeLineUI
                 string strActionLast = "]";
 
                 // dicActionGroup 의 키값이 해당단어의 검색된 위치인덱스임.
-                Dictionary<int, ScriptInfo> dicActionGroup = _EventCoreParser(script_text, nLayerIndex, strAction, strActionLast);
+                Dictionary<Guid, ScriptInfo> dicActionGroup = _EventCoreParser(script_text, nLayerIndex, strAction, strActionLast);
                 //foreach (var obj in dicActionGroup)
                 //{
                 //    foreach (var sub in obj.Value)
@@ -418,9 +407,9 @@ namespace TimeLineUI
                     if (i == (int)TOTALEVENTTYPE.PLAYGROUP)
                     {
                         Console.WriteLine("액션{0}이 실행할 그룹인덱스 {1}, 위치값 {2}, 딜레이값 {3}", lstEventType[i], action.Value.lstData[0], action.Key, action.Value.lstData[1]);
-                        int nUniqueID = Utils.getID_gObject(nLayerIndex, action.Key);
-                        eventObj = new EventObject(action.Value, nUniqueID, TOTALEVENTTYPE.PLAYGROUP);
 
+                        // 플레이 그룹은 가리키는 오브젝트 유니크 아이디가 없음.
+                        eventObj = new EventObject(action.Value, -1, TOTALEVENTTYPE.PLAYGROUP);
                         eventResult.Add(eventObj);
                     }
                     else
@@ -436,32 +425,38 @@ namespace TimeLineUI
                     }
 
 
-                    int nGroupIdx = _FindGroupInAction(dicGroup, eventObj.mScriptInfo.nStartIdx);
-                    int nCheckButtonGropuIdx = _FindGroupInAction(dicCheckButton, eventObj.mScriptInfo.nStartIdx);
-                    int nCallButtonGropuIdx = _FindGroupInAction(dicCallButton, eventObj.mScriptInfo.nStartIdx);
+                    int nGroupScriptIdx = -1;
+                    if (dicGroup != null)
+                        nGroupScriptIdx = _FindGroupInAction(dicGroup, eventObj.mScriptInfo.nStartIdx);
+
+                    int nCheckButtonScriptIdx = -1;
+                    if (dicCheckButton != null)
+                        nCheckButtonScriptIdx = _FindGroupInAction(dicCheckButton, eventObj.mScriptInfo.nStartIdx);
+
+                    int nCallButtonScriptIdx = -1;
+                    if (dicCallButton != null)
+                        nCallButtonScriptIdx = _FindGroupInAction(dicCallButton, eventObj.mScriptInfo.nStartIdx);
 
 
 
-                    if (nGroupIdx >= 0)
+                    if (nGroupScriptIdx >= 0)
                     {
-                        Console.WriteLine("액션{0}의 그룹인덱스 {1}, 위치값 {2}, 유니크아이디 {3}", lstEventType[i], nGroupIdx, action.Key, action.Value.lstData[0]);
+                        Console.WriteLine("액션{0}의 그룹시작값 {1}, 위치값 {2}, 유니크아이디 {3}", lstEventType[i], nGroupScriptIdx, action.Key, action.Value.lstData[0]);
 
                         // 그룹오브젝트의 자식들로 추가
-                        AddActionInGroup(groupResult, eventObj, nGroupIdx, nLayerIndex);
+                        AddActionInGroupByScriptIdx(groupResult, eventObj, nGroupScriptIdx, nLayerIndex);
                     }
-                    else if (nCheckButtonGropuIdx >= 0)
+                    else if (nCheckButtonScriptIdx >= 0)
                     {
-                        Console.WriteLine("액션{0}의 그룹인덱스 {1}, 위치값 {2}, 유니크아이디 {3}", lstEventType[i], nCheckButtonGropuIdx, action.Key, action.Value.lstData[0]);
+                        Console.WriteLine("액션{0}의 체크버튼 그룹시작값 {1}, 위치값 {2}, 유니크아이디 {3}", lstEventType[i], nCheckButtonScriptIdx, action.Key, action.Value.lstData[0]);
 
                         // 체크버튼그룹 오브젝트의 자식들로 추가
-                        // 임시로 체크버튼의 유니크아이디를 찾으려면 100을 곱해서 찾는다.
-                        AddActionInGroup(groupResult, eventObj, nCheckButtonGropuIdx, nLayerIndex, 100);
+                        AddActionInGroupByScriptIdx(groupResult, eventObj, nCheckButtonScriptIdx, nLayerIndex, 100);
                     }
-                    else if (nCallButtonGropuIdx >= 0)
+                    else if (nCallButtonScriptIdx >= 0)
                     {
                         //Console.WriteLine("액션{0}의 그룹인덱스 {1}, 위치값 {2}, 유니크아이디 {3}", lstEventType[i], nCallButtonGropuIdx, action.Key, action.Value[0]);
                         // 콜 버튼그룹 오브젝트의 자식들로 추가
-                        int b = 0;
                     }
                     else // 그룹에 안 속한 것들
                     {
@@ -470,21 +465,21 @@ namespace TimeLineUI
                 }
             }
 
-            // 그룹별 액션 추가작업이 끝났다면 그룹별 대표 오브젝트 지정 
-            // 각 그룹별로 대표오브젝트 지정 - 일단 체크버튼만
-            foreach (var obj in dicCheckButton)
-            {
-                int findUniqueID = Utils.getID_gObject(nLayerIndex, obj.Key);
-                int findIdx = groupResult.FindIndex(r => r.nUniqueID == findUniqueID);
-                groupResult[findIdx].SetLeaderObject();
-            }
+            //// 그룹별 액션 추가작업이 끝났다면 그룹별 대표 오브젝트 지정 
+            //// 각 그룹별로 대표오브젝트 지정 - 일단 체크버튼만
+            //foreach (var obj in dicCheckButton)
+            //{
+            //    int findUniqueID = Utils.getID_gObject(nLayerIndex, obj.Key);
+            //    int findIdx = groupResult.FindIndex(r => r.nUniqueID == findUniqueID);
+            //    groupResult[findIdx].SetLeaderObject();
+            //}
 
             Console.WriteLine("---------------------------------------------" + nLayerIndex);
 
             //return result;
         }
 
-        static private EventObject MakeEvent(KeyValuePair<int, ScriptInfo> action, string actionName, TOTALEVENTTYPE type)
+        static private EventObject MakeEvent(KeyValuePair<Guid, ScriptInfo> action, string actionName, TOTALEVENTTYPE type)
         {
             int uniqueID = 0;
             EventObject eventObj = null;
@@ -520,14 +515,39 @@ namespace TimeLineUI
             return eventObj;
         }
 
-        // 그룹에 액션들추가 - 현재는 일부분만 구현 - 약간 예외성격의 메소드임 다시 작성해야 함.
-        static private void AddActionInGroup(List<GroupObject> lstGroup, EventObject eObj, int nGroupID, int nLayerIndex, int revise = 1)
+        static private void AddActionInGroupByGroupID(List<GroupObject> lstGroup, EventObject eObj, int nGroupID, int nLayerIndex, int revise = 1)
         {
-            int key = eObj.mScriptInfo.nStartIdx; //eObj.nUniqueID; // 추후 모든 오브젝트에 유니크할당작업이 마무리되면 유니크아이디를 키값으로...
+            Guid key = eObj.uniID;
 
-            int findUniqueID = Utils.getID_gObject(nLayerIndex, nGroupID * revise);
-            int findIdx = lstGroup.FindIndex(r => r.nUniqueID == findUniqueID);
+            List<GroupObject> gObjs = FindGroupObjectByGroupIndex(nGroupID);
+            // 그룹인덱스로만 검색하면 2개이상이 나올 가능성이 있으나 옛날 번개툴일때 문제이고
+            // 앱버스일때는 일단 그룹인덱스 겹치지 않는다는 전재하에서 작업
+            // 그러므로 얻어온 리스트중에 첫번째거로만 작업해도 큰 차이없음.
+            if (gObjs == null)
+            {
+                MessageBox.Show("맞는 그룹이 없습니다.");
+                return;
+            }
+            GroupObject gObj = gObjs[0];
+
+            gObj.lstEventObjects.Add(key, eObj);
+        }
+
+        // 그룹에 액션들추가 - 현재는 일부분만 구현 - 약간 예외성격의 메소드임 다시 작성해야 함.
+        static private void AddActionInGroupByScriptIdx(List<GroupObject> lstGroup, EventObject eObj, int nGroupScriptStartIdx, int nLayerIndex, int revise = 1)
+        {
+            Guid key = eObj.uniID;
+
+            int findIdx = lstGroup.FindIndex(r => r.mScriptInfo.nStartIdx == nGroupScriptStartIdx);
+            if (findIdx == -1)
+            {
+                Console.WriteLine(" 맞는 그룹이 없습니다.");
+                return;
+            }
+
             lstGroup[findIdx].lstEventObjects.Add(key, eObj);
+
+            Console.WriteLine("{0} EventCount : {1}", findIdx, lstGroup[findIdx].lstEventObjects.Count);
         }
 
         // 이 함수가 만드는 키는 찾는 그룹이나 단어에 따라 달라짐
@@ -543,99 +563,122 @@ namespace TimeLineUI
         // 키 : 해당액션을 찾은 문자열 위치
         // 값 : 액션뒤에 나오는 배열그대로 (쓰는건 알아서)
         //
-        static private Dictionary<int, ScriptInfo> _EventCoreParser(string[] workString, int nLayerIndex, string firstWord, string findLastWord)
+        static private Dictionary<Guid, ScriptInfo> _EventCoreParser(string[] workString, int nLayerIndex, string firstWord, string findLastWord)
         {
             string strFirstWord = "[";
             strFirstWord += firstWord;
             strFirstWord += "=";
 
             // 문자열안에 여러개의 그룹이 올수 있으므로
-            Dictionary<int, ScriptInfo> result = new Dictionary<int, ScriptInfo>();
+            Dictionary<Guid, ScriptInfo> result = new Dictionary<Guid, ScriptInfo>();
 
             string text = workString[nLayerIndex];
 
             // 찾을 문자열이 여러개 섞여있을때 인덱스리스트 얻기
             List<int> lstfindFirstIndex = _GetPositions(workString[nLayerIndex], strFirstWord);
-            int key = -1;
-            foreach (int idx in lstfindFirstIndex)
+            List<int> lstfindLastIndex = _GetPositions(workString[nLayerIndex], findLastWord);
+
+            Guid key = Guid.Empty;
+            int pairIndex = 0;
+            foreach (int nFirstWordIndex in lstfindFirstIndex)
             {
-                string str = text.Substring(idx);
+                string str = text.Substring(nFirstWordIndex);
 
-                int findLastWordIndex = str.IndexOf(findLastWord);
-                if (findLastWordIndex < 0) return null;
+                int nLastWordIndex = lstfindLastIndex[pairIndex];
+                if (nLastWordIndex < 0) return null;
 
-                int startindex = strFirstWord.Length;
-
-                // 지정한 특정 단어의 정보 [액션= ~ [지정단어]
-                int findLength = findLastWordIndex - strFirstWord.Length;
-                string subValues = str.Substring(startindex, findLength);
-                string[] values = subValues.Split(',');
+                pairIndex++;
 
                 // 한 액션의 정보 [액션=데이터]
                 int nEventEndIdx = str.IndexOf("]");
                 int nEventLength = nEventEndIdx - strFirstWord.Length;
-                string tempEventValues = str.Substring(startindex, nEventLength);
+                string tempEventValues = str.Substring(strFirstWord.Length, nEventLength);
                 string[] strEventValues = tempEventValues.Split(',');
 
 
                 // Console.WriteLine("액션 {0}, 유니크 {1}, 레이어 {2}, 딜레이 {3}, 인덱스 {4}", findFirstWord, values[0], j, values[values.Length - 1], idx);
 
-
-                int intParseResult = 0;
-                if (int.TryParse(values[0], out intParseResult))
+                // 그룹세트일때 스크립트 정보에 몸통정보가 별도 처리
+                if (findLastWord == "[END BUTTON]" ||
+                    findLastWord == "[END TARGET]" ||
+                    findLastWord == "[END COUNT]" ||
+                    findLastWord == "[END GROUP]" ||
+                    findLastWord == "[FINISH GROUP]")
                 {
-                    key = idx;
+                    string GroupHead = string.Format("{0}{1}]", strFirstWord, tempEventValues);
+                    int nGroupBodyStartIdx = nFirstWordIndex + GroupHead.Length;
+                    int nGroupBodyEndIdx = nLastWordIndex;
+                    int nGroupLength = nGroupBodyEndIdx - nGroupBodyStartIdx;
 
-                    ScriptInfo info = new ScriptInfo(nLayerIndex);
-                    info.lstData = values.ToList();
+                    key = Guid.NewGuid();
 
-                    info.nStartIdx = idx;
-                    info.nLength = nEventEndIdx + 1;
+                    ScriptInfo info = new ScriptInfo("");
+                    info.nLayerIdx = nLayerIndex;                       // 추후 삭제될 예정
+                    info.lstData.Add(nGroupBodyStartIdx.ToString());    // 그룹일때는 몸통의 최초인덱스 - 추후 변경될 예정(어떤 정보로 교체할지 미정)
+                    info.lstData.Add(nGroupBodyEndIdx.ToString());      // 그룹일때는 몸통의 마지막인덱스 - 추후 변경될 예정(어떤 정보로 교체할지 미정)
+                    info.nStartIdx = nFirstWordIndex;                                        // 첫단어의 최초인덱스, 추후 삭제될 예정
+                    info.nLength = (nLastWordIndex - nFirstWordIndex) + findLastWord.Length; // 마지막 단어의 길이까지 포함한 전체길이, 추후 삭제될 예정
+
+                    //info.strScriptData = 그룹은 스크립트 정보 없음.
 
                     // 테스트 문장
-                    //string temp = text.Substring(info.nStartIdx, info.nLength);
+                    //string full = text.Substring(info.nStartIdx, info.nLength);
+                    //string body = text.Substring(nGroupBodyStartIdx, nGroupLength);
 
                     result.Add(key, info);
-
                 }
-                else // 예외나 에러처리...
+                else
                 {
-                    if (findLastWord == "[END BUTTON]" ||
-                        findLastWord == "[END TARGET]" ||
-                        findLastWord == "[END COUNT]" ||
-                        findLastWord == "[END GROUP]" ||
-
-                        findLastWord == "[FINISH GROUP]")
+                    int intParseResult = 0;
+                    if (int.TryParse(strEventValues[0], out intParseResult)) // 유니크 오브젝트 아이디가 있는 명령어라면...
                     {
-                        // GROUP 인덱스가 키값
-                        key = int.Parse(strEventValues[0]);
+                        key = Guid.NewGuid();
 
-                        ScriptInfo info = new ScriptInfo(nLayerIndex);
-                        info.lstData.Add(idx.ToString());
-                        info.lstData.Add(findLastWordIndex.ToString());
+                        ScriptInfo info = new ScriptInfo("");
+                        info.nLayerIdx = nLayerIndex;                       // 추후 삭제될 예정
+                        info.lstData = strEventValues.ToList();
+                        info.nStartIdx = nFirstWordIndex;                   // 추후 삭제될 예정
+                        info.nLength = nEventEndIdx + 1;                    // 추후 삭제될 예정
+                        info.strScriptData = text.Substring(info.nStartIdx, info.nLength);
 
-                        info.nStartIdx = idx;
-                        info.nLength = (findLastWordIndex - idx) + findLastWord.Length;
-
-                        // 테스트 문장
-                        //string temp = text.Substring(info.nStartIdx, info.nLength);
+                        //Console.WriteLine("info.strScriptData : {0}", info.strScriptData);
 
                         result.Add(key, info);
                     }
-                    else if (firstWord == "SOUND")
+                    else // 예외나 에러처리...
                     {
-                        key = idx;
+                        if (firstWord == "SOUND")
+                        {
+                            key = Guid.NewGuid();
 
-                        ScriptInfo info = new ScriptInfo(nLayerIndex);
-                        info.lstData = values.ToList();
+                            ScriptInfo info = new ScriptInfo("");
+                            info.nLayerIdx = nLayerIndex;                       // 추후 삭제될 예정
+                            info.lstData = strEventValues.ToList();
+                            info.nStartIdx = nFirstWordIndex;                   // 추후 삭제될 예정
+                            info.nLength = nEventEndIdx + 1;                    // 추후 삭제될 예정
+                            info.strScriptData = text.Substring(info.nStartIdx, info.nLength);
 
-                        info.nStartIdx = idx;
-                        info.nLength = nEventEndIdx + 1;
+                            // 0번째에 강제로 유니크 아이디 삽입
+                            info.lstData.Insert(0, nSoundObjectID.ToString());
 
-                        // 0번째에 강제로 유니크 아이디 삽입
-                        info.lstData.Insert(0, nSoundObjectID.ToString());
+                            result.Add(key, info);
+                        }
+                        else // if(firstWord == "X_CRASH" || firstWord == "QUAKE")
+                        {
+                            key = Guid.NewGuid();
 
-                        result.Add(key, info);
+                            ScriptInfo info = new ScriptInfo("");
+                            info.nLayerIdx = nLayerIndex;                       // 추후 삭제될 예정
+                            info.lstData = strEventValues.ToList();
+                            info.nStartIdx = nFirstWordIndex;                   // 추후 삭제될 예정
+                            info.nLength = nEventEndIdx + 1;                    // 추후 삭제될 예정
+                            info.strScriptData = text.Substring(info.nStartIdx, info.nLength);
+
+                            // 0번째에 강제로 유니크 아이디 삽입 (일단 모두 카메라 오브젝트로 몰기)
+                            info.lstData.Insert(0, nCameraObjectID.ToString());
+
+                            result.Add(key, info);
+                        }
                     }
                 }
             }
@@ -643,11 +686,11 @@ namespace TimeLineUI
             return result;
         }
 
-        static private int _FindGroupInAction(Dictionary<int, ScriptInfo> dicGroup, int actionIdx)
+        static private int _FindGroupInAction(Dictionary<Guid, ScriptInfo> dicGroup, int actionIdx)
         {
             // 그룹이라는 단어가 나오면 그 인덱스들을 기억한 다음 엔드그룹이라는 인덱스도 기억 - 딕셔너리 처리
             // 이벤트단어를 찾았을때 그룹인덱스와 엔드그룹인덱스안에 있다면 해당그룹임.
-            foreach (KeyValuePair<int, ScriptInfo> dicObj in dicGroup)
+            foreach (KeyValuePair<Guid, ScriptInfo> dicObj in dicGroup)
             {
                 //Console.WriteLine("Key:{0} First:{1}-Last:{2}", dicObj.Key, dicObj.Value[0], dicObj.Value[1]);
                 int nF = int.Parse(dicObj.Value.lstData[0]);
@@ -655,7 +698,7 @@ namespace TimeLineUI
 
                 if (actionIdx > nF && actionIdx < nF + nL)
                 {
-                    return dicObj.Key;
+                    return dicObj.Value.nStartIdx;
                 }
             }
 
@@ -688,7 +731,7 @@ namespace TimeLineUI
             Point location = new Point(mousex, mousey);
             for (int i = 0; i < nMaxLayerCount; i++)
             {
-                foreach (var gObj in lstGroupObjects[i])
+                foreach (var gObj in mlstGroupObjects[i])
                 {
                     gObj.Click(mousex, mousey);
                 }
@@ -699,17 +742,17 @@ namespace TimeLineUI
         {
             for (int i = 0; i < nMaxLayerCount; i++)
             {
-                if (lstGroupObjects.Count > 0)
+                if (mlstGroupObjects.Count > 0)
                 {
-                    foreach (var gObj in lstGroupObjects[i])
+                    foreach (var gObj in mlstGroupObjects[i])
                     {
                         gObj.Play(now);
                     }
                 }
 
-                if (lstEventObjects.Count > 0)
+                if (mlstEventObjects.Count > 0)
                 {
-                    foreach (var eObj in lstEventObjects[i])
+                    foreach (var eObj in mlstEventObjects[i])
                     {
                         eObj.Play(now);
                     }
@@ -723,28 +766,76 @@ namespace TimeLineUI
         //    return mAppBusObjMng.GetObjectUniqueID(uniqueID);
         //}
 
-        // 인자가 유니크아이디가 아니라 그룹아이디임 주의요망...
-        static public GroupObject FindGroupObjectByGroupIndex(int GroupID)
+        // 그룹아이디가 같은게 여러개일수 있음.
+        static public List<GroupObject> FindGroupObjectByGroupIndex(int GroupID)
+        {
+            List<GroupObject> result = new List<GroupObject>();
+            for (int i = 0; i < nMaxLayerCount; i++)
+            {
+                int index = mlstGroupObjects[i].FindIndex(r => r.GroupID == GroupID);
+                if (index > -1)
+                {
+                    result.Add(mlstGroupObjects[i][index]);
+                }
+            }
+
+            return result;
+        }
+
+        // 이벤트가 자체적으로 갖고 있는 유니크 아이디임. 
+        // 이벤트가 가르키고 있는 유니크 아이디로 찾는것은 아래에 따로처리
+        static public EventObject FindEventObjectBySelfUniqueID(Guid uniID, out int workLayer)
         {
             for (int i = 0; i < nMaxLayerCount; i++)
             {
-                int index = lstGroupObjects[i].FindIndex(r => r.GroupID == GroupID);
+                int index = mlstEventObjects[i].FindIndex(r => r.uniID == uniID);
                 if (index > -1)
-                    return lstGroupObjects[i][index];
+                {
+                    workLayer = i;
+                    return mlstEventObjects[i][index];
+                }
+            }
+
+            workLayer = 0;
+            return null;
+        }
+
+        // 그룹의 유니크 아이디 찾기
+        static public GroupObject FindGroupObjectBySelfUniqueID(Guid uniqueID)
+        {
+            for (int i = 0; i < nMaxLayerCount; i++)
+            {
+                int index = mlstGroupObjects[i].FindIndex(r => r.uniID == uniqueID);
+                if (index > -1)
+                    return mlstGroupObjects[i][index];
             }
 
             return null;
         }
 
-        static public EventObject FindEventObjectByUniqueID(int uniqueID)
+        // 그룹 유니크아이디로 그룹안에 있는 이벤트 오브젝트들을 찾기
+        static public EventObject FindEventObjectInGroupBySelfUniqueID(Guid uniID, out int workLayer, out Guid groupUniID, out Guid key)
         {
             for (int i = 0; i < nMaxLayerCount; i++)
             {
-                int index = lstEventObjects[i].FindIndex(r => r.nUniqueID == uniqueID);
-                if (index > -1)
-                    return lstEventObjects[i][index];
+                foreach (GroupObject gObj in mlstGroupObjects[i])
+                {
+                    foreach (var eObj in gObj.lstEventObjects)
+                    {
+                        if (eObj.Value.uniID == uniID)
+                        {
+                            workLayer = i;
+                            groupUniID = gObj.uniID;
+                            key = eObj.Key;
+                            return eObj.Value;
+                        }
+                    }
+                }
             }
 
+            workLayer = -1;
+            groupUniID = Guid.Empty;
+            key = Guid.Empty;
             return null;
         }
 
@@ -754,13 +845,45 @@ namespace TimeLineUI
 
             for (int i = 0; i < nMaxLayerCount; i++)
             {
-                int index = lstEventObjects[i].FindIndex(r => r.eTotalEventType == type);
+                int index = mlstEventObjects[i].FindIndex(r => r.eTotalEventType == type);
                 if (index > -1)
-                    result.Add(lstEventObjects[i][index]);
+                    result.Add(mlstEventObjects[i][index]);
             }
 
 
             return result;
+        }
+
+        // 주의
+        // FindEventObjectByUniqueID 이 함수는 이 이벤트가 가르키는 유니크 아이디로 찾는것임.
+        // 즉 현재 EventObject는 따로 유니크 아이디가 없음. 자체적으로 스크립트 인덱스값만을 식별자로 가지고 있는것임.
+        // 그룹은 임시로 부여되는 유니크 아이디가 있음.
+        static public AEventBase FindTotalEventObjectBySelfUniqueID(Guid uniqueID)
+        {
+            int workLayer = -1; // 여기선 안씀
+            EventObject eObj = FindEventObjectBySelfUniqueID(uniqueID, out workLayer);
+
+            if (eObj != null)
+            {
+                // 그대로 리턴
+                return eObj;
+            }
+            else
+            {
+                // 그룹의 유니크 아이디일수도 있고, 그룹안에 있는 이벤트오브젝트를 찾아와야 될수도 있고
+                GroupObject gObj = FindGroupObjectBySelfUniqueID(uniqueID);
+                if (gObj == null)
+                {
+                    workLayer = -1;         // 여기선 안씀
+                    Guid GroupUniID = Guid.Empty;   // 여기선 안씀
+                    Guid Key = Guid.Empty;
+                    return FindEventObjectInGroupBySelfUniqueID(uniqueID, out workLayer, out GroupUniID, out Key);
+                }
+                else
+                {
+                    return gObj;
+                }
+            }
         }
     }
 }

@@ -12,19 +12,19 @@ namespace TimeLineUI
         public int GroupDelay { get; set; }             // 그룹인덱스의 딜레이 (없을수도 있음)
         public bool IsClick { get; set; }
 
-        virtual public void Parse() { }
+        //virtual public void Parse() { }
         virtual public void Click(int x, int y) { }
         virtual public void Play(long now) { }
 
-        public SortedList<int, EventObject> lstEventObjects = new SortedList<int, EventObject>(); // 그룹에 포함된 이벤트 리스트들
+        public SortedList<Guid, EventObject> lstEventObjects = new SortedList<Guid, EventObject>(); // 그룹에 포함된 이벤트 리스트들
         public EventObject mLeaderObj;                  // 이 그룹의 클릭처리를 위한 대표오브젝트
 
-        public GroupObject(ScriptInfo scriptInfo, int r_uniqueID, TOTALEVENTTYPE eType, int rGroupID, int rGroupDelay = 0)
+        public GroupObject(ScriptInfo scriptInfo, TOTALEVENTTYPE eType, int rGroupID, int rGroupDelay = 0)
         {
             strName = "";
             nTickIdx = 0;
 
-            nUniqueID = r_uniqueID;
+            uniID = Guid.NewGuid();
             nLayerdepth_index = scriptInfo.nLayerIdx;
 
             GroupID = rGroupID;

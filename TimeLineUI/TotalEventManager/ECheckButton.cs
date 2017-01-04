@@ -8,15 +8,15 @@ namespace TimeLineUI
 {
     public class ECheckButton : GroupObject
     {
-        public ECheckButton(ScriptInfo scriptInfo, int r_uniqueID, TOTALEVENTTYPE eType, int rGroupID, int rGroupDelay = 0) :
-            base(scriptInfo, r_uniqueID, eType, rGroupID, rGroupDelay)
+        public ECheckButton(ScriptInfo scriptInfo, TOTALEVENTTYPE eType, int rGroupID, int rGroupDelay = 0) :
+            base(scriptInfo, eType, rGroupID, rGroupDelay)
         {
         }
 
-        public override void Parse()
-        {
-            base.Parse();
-        }
+        //public override void Parse()
+        //{
+        //    base.Parse();
+        //}
 
         public override void Click(int mousex, int mousey)
         {

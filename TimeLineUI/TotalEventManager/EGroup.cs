@@ -10,16 +10,16 @@ namespace TimeLineUI
     {
         public bool IsPlay { get; set; }
 
-        public EGroup(ScriptInfo scriptInfo, int r_uniqueID, TOTALEVENTTYPE eType, int rGroupID, int rGroupDelay = 0) :
-            base(scriptInfo, r_uniqueID, eType, rGroupID, rGroupDelay)
+        public EGroup(ScriptInfo scriptInfo, TOTALEVENTTYPE eType, int rGroupID, int rGroupDelay = 0) :
+             base(scriptInfo, eType, rGroupID, rGroupDelay)
         {
             IsPlay = false;
         }
 
-        public override void Parse()
-        {
-            base.Parse();
-        }
+        //public override void Parse()
+        //{
+        //    base.Parse();
+        //}
 
         // 그룹오브젝트는 클릭처리 없이 자동처리
         public override void Click(int mousex, int mousey)
